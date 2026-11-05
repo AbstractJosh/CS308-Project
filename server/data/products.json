@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "name": "Ethiopia Yirgacheffe",
+    "description": "Light roast with floral jasmine notes and bright citrus acidity.",
+    "price": 240.0,
+    "stock": 14,
+    "category_id": 1,
+    "image_url": "https://placehold.co/400x400/png?text=Ethiopia+Yirgacheffe"
+  },
+  {
+    "id": 2,
+    "name": "Colombia Huila Supremo",
+    "description": "Medium roast featuring rich caramel, red apple, and milk chocolate undertones.",
+    "price": 210.0,
+    "stock": 8,
+    "category_id": 1,
+    "image_url": "https://placehold.co/400x400/png?text=Colombia+Huila"
+  },
+  {
+    "id": 3,
+    "name": "Bialetti Moka Express 4-Cup",
+    "description": "Classic octagonal aluminum stovetop espresso maker.",
+    "price": 850.0,
+    "stock": 0,
+    "category_id": 2,
+    "image_url": "https://placehold.co/400x400/png?text=Bialetti+Moka"
+  },
+  {
+    "id": 4,
+    "name": "Ceramic Burr Hand Grinder",
+    "description": "Adjustable manual burr grinder with stainless steel casing.",
+    "price": 490.0,
+    "stock": 5,
+    "category_id": 2,
+    "image_url": "https://placehold.co/400x400/png?text=Hand+Grinder"
+  },
+  {
+    "id": 5,
+    "name": "Brazil Cerrado Decaf",
+    "description": "Swiss water decaf process with notes of milk chocolate and roasted hazelnut.",
+    "price": 230.0,
+    "stock": 0,
+    "category_id": 1,
+    "image_url": "https://placehold.co/400x400/png?text=Brazil+Decaf"
+  },
+  {
+    "id": 6,
+    "name": "Glass Pour-Over Dripper Set",
+    "description": "Heat-resistant glass dripper with carafe and paper filters.",
+    "price": 350.0,
+    "stock": 12,
+    "category_id": 3,
+    "image_url": "https://placehold.co/400x400/png?text=Pour+Over+Set"
+  }
+]
