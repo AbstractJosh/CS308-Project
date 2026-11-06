@@ -6,7 +6,11 @@ import { z } from 'zod';
 
 // Small helper for "/:id" style params, usable by every area.
 export const idParamSchema = z.object({
-  id: z.coerce.number().int().positive({ message: 'Invalid id' }),
+  id: z.coerce
+    .number({ invalid_type_error: 'Invalid id' })
+    .int({ message: 'Invalid id' })
+    .positive({ message: 'Invalid id' })
+    .max(2147483647, { message: 'Invalid id' }),
 });
 
 // ===== AUTH (Ulukan) =====
