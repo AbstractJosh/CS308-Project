@@ -1,0 +1,16 @@
+# Local PostgreSQL 16 for development. Start: docker compose up -d   Stop: docker compose down
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crema
+      POSTGRES_PASSWORD: crema
+      POSTGRES_DB: crema_store
+    ports:
+      - '5432:5432'
+    volumes:
+      - crema_pgdata:/var/lib/postgresql/data
+
+volumes:
+  crema_pgdata:
