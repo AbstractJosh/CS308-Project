@@ -58,6 +58,12 @@ export default function CatalogPage() {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [requestedSlug, setRequestedSlug] = useState(slug);
+
+  if (slug !== requestedSlug) {
+    setRequestedSlug(slug);
+    setStatus('loading');
+  }
 
   useEffect(() => {
     let stale = false;
@@ -131,7 +137,7 @@ export default function CatalogPage() {
           </PageMessage>
         )}
 
-        {status === 'ready' && products.length > 0 && (
+        {status === 'ready' && !unknownCategory && products.length > 0 && (
           <div className="product-grid">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />

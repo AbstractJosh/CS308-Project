@@ -52,8 +52,19 @@ describe('Header', () => {
     renderLayout();
     await user.click(screen.getByRole('button', { name: 'Open menu' }));
     expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('navigation', { name: 'Main' })).toHaveClass('site-nav-open');
     await user.click(screen.getByRole('link', { name: 'Shop' }));
     expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('navigation', { name: 'Main' })).not.toHaveClass('site-nav-open');
+  });
+
+  it('closes the mobile menu after a search', async () => {
+    const user = userEvent.setup();
+    renderLayout();
+    await user.click(screen.getByRole('button', { name: 'Open menu' }));
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+    await user.type(screen.getByRole('searchbox'), 'grinder{Enter}');
+    expect(screen.getByRole('navigation', { name: 'Main' })).not.toHaveClass('site-nav-open');
   });
 });
 

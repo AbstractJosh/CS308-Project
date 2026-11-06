@@ -16,6 +16,7 @@ export default function Header() {
     const term = query.trim();
     navigate(term ? `/shop?q=${encodeURIComponent(term)}` : '/shop');
     setSearchOpen(false);
+    setMenuOpen(false);
     setQuery('');
   }
 
