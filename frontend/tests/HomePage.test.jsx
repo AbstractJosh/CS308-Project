@@ -3,7 +3,9 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import HomePage from '../src/pages/HomePage.jsx';
-import { categoriesApi, productsApi } from '../src/utils/fakeCatalog.js';
+import { categoriesApi, productsApi } from '../src/api/endpoints.js';
+
+vi.mock('../src/api/endpoints.js', () => import('./fixtures/fakeCatalog.js'));
 
 function renderHome() {
   return render(

@@ -1,9 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import Header from '../src/components/Header.jsx';
 import Footer from '../src/components/Footer.jsx';
+import { useAuth } from '../src/context/AuthContext.jsx';
+
+vi.mock('../src/context/AuthContext.jsx', () => ({
+  useAuth: vi.fn(() => ({ user: null })),
+}));
 
 function CurrentLocation() {
   const { pathname, search } = useLocation();
@@ -21,12 +26,38 @@ function renderLayout() {
 }
 
 describe('Header', () => {
+  afterEach(() => useAuth.mockReturnValue({ user: null }));
+
   it('links to the main pages', () => {
     renderLayout();
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'Shop' })).toHaveAttribute('href', '/shop');
     expect(screen.getByRole('link', { name: 'Account' })).toHaveAttribute('href', '/login');
     expect(screen.getByRole('link', { name: 'Cart' })).toHaveAttribute('href', '/cart');
+  });
+
+  it('hides Orders and Admin from guests', () => {
+    renderLayout();
+    expect(screen.queryByRole('link', { name: 'Orders' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+  });
+
+  it('shows Orders but not Admin to a customer', () => {
+    useAuth.mockReturnValue({ user: { role: 'CUSTOMER' } });
+    renderLayout();
+    expect(screen.getByRole('link', { name: 'Orders' })).toHaveAttribute('href', '/orders');
+    expect(screen.getByRole('link', { name: 'Account' })).toHaveAttribute('href', '/profile');
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['PRODUCT_MANAGER', '/admin/deliveries'],
+    ['SALES_MANAGER', '/admin/pricing'],
+    ['SUPPORT_AGENT', '/support'],
+  ])('sends %s to their own admin page', (role, path) => {
+    useAuth.mockReturnValue({ user: { role } });
+    renderLayout();
+    expect(screen.getByRole('link', { name: 'Admin' })).toHaveAttribute('href', path);
   });
 
   it('opens the search bar and submits to the shop page', async () => {

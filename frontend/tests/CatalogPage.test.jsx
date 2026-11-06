@@ -3,7 +3,9 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import CatalogPage from '../src/pages/CatalogPage.jsx';
-import { productsApi } from '../src/utils/fakeCatalog.js';
+import { productsApi } from '../src/api/endpoints.js';
+
+vi.mock('../src/api/endpoints.js', () => import('./fixtures/fakeCatalog.js'));
 
 function renderAt(path) {
   return render(
@@ -67,6 +69,14 @@ describe('CatalogPage', () => {
     renderAt('/shop/COFFEE');
     expect(await screen.findByText('Category not found')).toBeInTheDocument();
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
+  });
+
+  it('shows category not found when the API rejects the address', async () => {
+    const rejected = Object.assign(new Error('Invalid category'), { status: 400 });
+    vi.spyOn(productsApi, 'list').mockRejectedValueOnce(rejected);
+    renderAt('/shop/bad_slug');
+    expect(await screen.findByText('Category not found')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 
   it('shows the error and tries again', async () => {

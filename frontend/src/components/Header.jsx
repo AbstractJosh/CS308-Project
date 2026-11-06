@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.jsx';
 import './Header.css';
 
 const ICON_PROPS = { size: 20, strokeWidth: 1.5 };
+const ADMIN_PATHS = {
+  PRODUCT_MANAGER: '/admin/deliveries',
+  SALES_MANAGER: '/admin/pricing',
+  SUPPORT_AGENT: '/support',
+};
 
 export default function Header() {
+  const { user } = useAuth();
+  const adminPath = user && ADMIN_PATHS[user.role];
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -39,6 +47,16 @@ export default function Header() {
           <NavLink to="/shop" className="site-nav-link" onClick={closeMenu}>
             Shop
           </NavLink>
+          {user && (
+            <NavLink to="/orders" className="site-nav-link" onClick={closeMenu}>
+              Orders
+            </NavLink>
+          )}
+          {adminPath && (
+            <NavLink to={adminPath} className="site-nav-link" onClick={closeMenu}>
+              Admin
+            </NavLink>
+          )}
         </nav>
 
         <div className="site-actions">
@@ -51,7 +69,7 @@ export default function Header() {
           >
             <Search {...ICON_PROPS} />
           </button>
-          <Link to="/login" className="site-icon-button" aria-label="Account" onClick={closeMenu}>
+          <Link to={user ? '/profile' : '/login'} className="site-icon-button" aria-label="Account" onClick={closeMenu}>
             <User {...ICON_PROPS} />
           </Link>
           <Link to="/cart" className="site-icon-button" aria-label="Cart" onClick={closeMenu}>
