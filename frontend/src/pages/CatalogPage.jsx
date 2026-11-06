@@ -43,7 +43,7 @@ function CategoryChip({ to, label, active }) {
 
 function PageMessage({ title, text, children }) {
   return (
-    <div className="section empty-state">
+    <div className="section empty-state catalog-message">
       <h3>{title}</h3>
       <p className="muted">{text}</p>
       {children}
@@ -110,6 +110,8 @@ export default function CatalogPage() {
             <CategoryChip key={item.id} to={`/shop/${item.slug}`} label={item.name} active={item.slug === slug} />
           ))}
         </nav>
+
+        <h2 className="catalog-results-title">Products</h2>
 
         {status === 'loading' && <PageMessage title="Loading products" text="This only takes a moment." />}
 

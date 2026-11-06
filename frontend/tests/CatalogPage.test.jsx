@@ -38,6 +38,13 @@ describe('CatalogPage', () => {
     expect(chips.getByRole('link', { name: 'All' })).not.toHaveAttribute('aria-current');
   });
 
+  it('keeps the heading order from the page title to the product names', async () => {
+    renderAt('/shop/coffee');
+    await screen.findByText('6 PRODUCTS');
+    const levels = screen.getAllByRole('heading').map((heading) => Number(heading.tagName.slice(1)));
+    expect(levels.slice(0, 3)).toEqual([1, 2, 3]);
+  });
+
   it('moves to another category when a chip is clicked', async () => {
     const user = userEvent.setup();
     renderAt('/shop');
