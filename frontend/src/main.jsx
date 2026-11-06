@@ -10,14 +10,17 @@ import './styles/global.css';
 // at the marked places. Only add your import and your wrapper lines.
 
 // ----- provider imports (AuthProvider: Ulukan, CartProvider: Sezin) -----
+import { AuthProvider } from './context/AuthContext.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastProvider>
         {/* AuthProvider goes here, around everything below */}
+        <AuthProvider>
         {/* CartProvider goes here, inside AuthProvider */}
         <App />
+        </AuthProvider>
       </ToastProvider>
     </BrowserRouter>
   </React.StrictMode>
