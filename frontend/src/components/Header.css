@@ -1,0 +1,133 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header-inner.container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  height: var(--header-height);
+}
+
+.site-logo {
+  display: inline-flex;
+  flex-direction: column;
+  justify-self: start;
+  gap: 2px;
+}
+
+.site-logo-name {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.site-logo-tagline {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.site-nav {
+  display: flex;
+  gap: 32px;
+}
+
+.site-nav-link {
+  color: var(--champagne);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.site-nav-link:hover,
+.site-nav-link.active {
+  color: var(--accent);
+}
+
+.site-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.site-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--champagne);
+  transition: border-color 0.15s;
+}
+
+.site-icon-button:hover {
+  border-color: var(--accent);
+}
+
+.site-menu-button {
+  display: none;
+}
+
+.site-search {
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.site-search-form.container {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .site-header-inner.container {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+  }
+
+  .site-logo-name {
+    font-size: 18px;
+  }
+
+  .site-logo-tagline {
+    display: none;
+  }
+
+  .site-actions {
+    gap: 4px;
+  }
+
+  .site-menu-button {
+    display: inline-flex;
+  }
+
+  .site-nav {
+    display: none;
+  }
+
+  .site-nav-open {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px var(--side-padding);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+}
