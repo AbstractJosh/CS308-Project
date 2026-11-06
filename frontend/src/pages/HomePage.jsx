@@ -145,7 +145,9 @@ export default function HomePage() {
                   <Link key={category.id} to={`/shop/${category.slug}`} className="card home-category">
                     <h3 className="home-category-name">{category.name}</h3>
                     <p className="muted home-category-description">{category.description}</p>
-                    <span className="home-category-count">{category.productCount} PRODUCTS</span>
+                    <span className="home-category-count">
+                      {category.productCount} {category.productCount === 1 ? 'PRODUCT' : 'PRODUCTS'}
+                    </span>
                   </Link>
                 ))}
               </div>

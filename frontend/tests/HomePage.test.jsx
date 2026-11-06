@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import HomePage from '../src/pages/HomePage.jsx';
-import { categoriesApi } from '../src/utils/fakeCatalog.js';
+import { categoriesApi, productsApi } from '../src/utils/fakeCatalog.js';
 
 function renderHome() {
   return render(
@@ -40,6 +40,27 @@ describe('HomePage', () => {
     );
     const [photo] = screen.getAllByRole('img', { name: 'Sage The Barista Express Impress' });
     expect(photo).toHaveAttribute('src', '/images/products/CRM-EM-1003/01.jpg');
+  });
+
+  it('skips a sold-out machine when choosing the featured one', async () => {
+    const { products } = await productsApi.list();
+    const withoutStock = products.map((product) =>
+      product.serialNumber === 'CRM-EM-1003' ? { ...product, quantityInStock: 0, inStock: false } : product
+    );
+    vi.spyOn(productsApi, 'list').mockResolvedValueOnce({ products: withoutStock });
+    renderHome();
+    await screen.findByText('10 CATEGORIES');
+    expect(screen.getByRole('link', { name: /Sage The Bambino Plus.*₺49,999\.00/ })).toHaveAttribute(
+      'href',
+      '/products/5'
+    );
+  });
+
+  it('writes the singular label for a category with one product', async () => {
+    renderHome();
+    const card = await screen.findByRole('link', { name: /Turkish Coffee Machines/ });
+    expect(card).toHaveTextContent('1 PRODUCT');
+    expect(card).not.toHaveTextContent('1 PRODUCTS');
   });
 
   it('lists all categories with links', async () => {

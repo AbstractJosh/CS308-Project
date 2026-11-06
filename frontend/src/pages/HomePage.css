@@ -50,7 +50,7 @@
 .home-stat-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -97,13 +97,13 @@
 
 .home-hero-card-name {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.2;
 }
 
 .home-hero-card-price {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--accent);
 }
@@ -161,7 +161,7 @@
 .home-category-count {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.3em;
   color: var(--accent);
 }
 
