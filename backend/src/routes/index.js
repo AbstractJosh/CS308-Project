@@ -7,6 +7,11 @@ import { Router } from 'express';
 // ----- imports: AUTH (Ulukan) -----
 
 // ----- imports: CATALOG (Luis, Sidar) -----
+// validate is imported under its own name here so this block does not clash with the AUTH block's import.
+import * as productsController from '../controllers/products.controller.js';
+import * as categoriesController from '../controllers/categories.controller.js';
+import { validate as validateCatalog } from '../middleware/validate.js';
+import { idParamSchema, productListQuerySchema } from '../utils/validators.js';
 
 // ----- imports: CART (Luis) -----
 
@@ -23,6 +28,9 @@ router.get('/health', (req, res) => {
 // ===== AUTH (Ulukan) =====
 
 // ===== CATALOG (Luis, Sidar) =====
+router.get('/categories', categoriesController.list);
+router.get('/products', validateCatalog(productListQuerySchema, 'query'), productsController.list);
+router.get('/products/:id', validateCatalog(idParamSchema, 'params'), productsController.getById);
 
 // ===== CART (Luis) =====
 
