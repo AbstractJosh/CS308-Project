@@ -67,6 +67,24 @@ describe('POST /api/auth/register', () => {
     expect(authService.register).not.toHaveBeenCalled();
   });
 
+  it('answers 400 for a password over 72 bytes, and 201 for one of exactly 72 bytes', async () => {
+    authService.register.mockResolvedValue({ user, token: 'new-token' });
+    const longest = `A1${'ş'.repeat(35)}`; // 37 characters, 72 bytes
+    const tooLong = await request(app)
+      .post('/api/auth/register')
+      .send({ ...form, password: `${longest}X` });
+    expect(tooLong.status).toBe(400);
+    expect(tooLong.body.details).toEqual([
+      { field: 'password', message: 'Password is too long: letters like ş count as 2 of the 72 characters' },
+    ]);
+    expect(authService.register).not.toHaveBeenCalled();
+
+    const fits = await request(app)
+      .post('/api/auth/register')
+      .send({ ...form, password: longest });
+    expect(fits.status).toBe(201);
+  });
+
   it('answers 409 when the email is taken', async () => {
     authService.register.mockRejectedValue(conflict('An account with this email already exists'));
     const res = await request(app).post('/api/auth/register').send(form);

@@ -8,6 +8,9 @@ export function hashPassword(password) {
 }
 
 // Resolves to true when the plain password matches the stored hash.
-export function verifyPassword(password, hash) {
+// bcrypt only reads the first 72 bytes, so a longer attempt could match without being the
+// real password. Registration never stores a longer one, so it can only be wrong.
+export async function verifyPassword(password, hash) {
+  if (bcrypt.truncates(password)) return false;
   return bcrypt.compare(password, hash);
 }

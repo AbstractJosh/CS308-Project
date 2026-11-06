@@ -130,6 +130,17 @@ describe('login', () => {
       message: 'Email or password is incorrect',
     });
   });
+
+  it('logs in with a 72-byte password but answers the same 401 when extra text is added to it', async () => {
+    const password = `A1${'ş'.repeat(35)}`;
+    await authService.register({ ...form, email: 'long@crema.com', password });
+    const { user } = await authService.login({ email: 'long@crema.com', password });
+    expect(user.email).toBe('long@crema.com');
+    await expect(authService.login({ email: 'long@crema.com', password: `${password}X` })).rejects.toMatchObject({
+      status: 401,
+      message: 'Email or password is incorrect',
+    });
+  });
 });
 
 describe('getMe', () => {

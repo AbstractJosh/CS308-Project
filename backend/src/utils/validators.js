@@ -30,7 +30,12 @@ export const registerSchema = z.object({
     .min(8, { message: 'Password must be 8 to 72 characters' })
     .max(72, { message: 'Password must be 8 to 72 characters' })
     .regex(/\p{L}/u, { message: 'Password must contain a letter' })
-    .regex(/\d/, { message: 'Password must contain a number' }),
+    .regex(/\d/, { message: 'Password must contain a number' })
+    // bcrypt only reads 72 bytes, and letters like ş take 2 bytes, so count bytes as well.
+    // Over 72 characters already has its message above, so it doesn't get this one too.
+    .refine((password) => password.length > 72 || Buffer.byteLength(password, 'utf8') <= 72, {
+      message: 'Password is too long: letters like ş count as 2 of the 72 characters',
+    }),
   taxId: z
     .string({ required_error: 'Tax ID is required' })
     .regex(/^\d{10,11}$/, { message: 'Tax ID must be 10 or 11 digits' }),

@@ -38,6 +38,8 @@ describe('registerSchema', () => {
     ['email too long for the column', { email: `${'a'.repeat(250)}@crema.com` }, 'email'],
     ['password of 7 characters', { password: 'Demo123' }, 'password'],
     ['password of 73 characters', { password: `a1${'b'.repeat(71)}` }, 'password'],
+    ['password of 38 characters but 73 bytes', { password: `A1${'ş'.repeat(35)}X` }, 'password'],
+    ['password that is not text', { password: 12345678 }, 'password'],
     ['password without a letter', { password: '12345678' }, 'password'],
     ['password without a number', { password: 'DemoDemo' }, 'password'],
     ['tax ID of 9 digits', { taxId: '123456789' }, 'taxId'],
@@ -55,6 +57,7 @@ describe('registerSchema', () => {
     ['name of 100 characters', { name: 'a'.repeat(100) }],
     ['password of 8 characters', { password: 'Demo1234' }],
     ['password of 72 characters', { password: `a1${'b'.repeat(70)}` }],
+    ['password of 37 characters and exactly 72 bytes', { password: `A1${'ş'.repeat(35)}` }],
     ['password whose only letter is Turkish', { password: '1234567ş' }],
     ['tax ID of 11 digits', { taxId: '12345678901' }],
     ['address of 10 characters', { homeAddress: 'a'.repeat(10) }],
@@ -67,6 +70,13 @@ describe('registerSchema', () => {
     const { error } = registerSchema.safeParse({ ...validForm, name: undefined });
     expect(error.issues[0].message).toBe('Name is required');
   });
+
+  it('explains the limit when Turkish letters push a short password over 72 bytes', () => {
+    const { error } = registerSchema.safeParse({ ...validForm, password: `A1${'ş'.repeat(35)}X` });
+    expect(error.issues.map((issue) => issue.message)).toEqual([
+      'Password is too long: letters like ş count as 2 of the 72 characters',
+    ]);
+  });
 });
 
 describe('loginSchema', () => {
@@ -77,6 +87,11 @@ describe('loginSchema', () => {
 
   it('does not apply the register password rules, so a short password gets a 401 and not a 400', () => {
     expect(loginSchema.safeParse({ email: 'a@crema.com', password: 'x' }).success).toBe(true);
+  });
+
+  it('lets a password over 72 bytes through, so it gets the normal 401 and not a 400', () => {
+    const password = `A1${'ş'.repeat(35)}X`;
+    expect(loginSchema.safeParse({ email: 'a@crema.com', password }).success).toBe(true);
   });
 
   it.each([

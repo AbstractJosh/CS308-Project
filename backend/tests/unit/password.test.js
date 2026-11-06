@@ -19,4 +19,15 @@ describe('verifyPassword', () => {
     expect(await verifyPassword('Demo1234', hash)).toBe(true);
     expect(await verifyPassword('demo1234', hash)).toBe(false);
   });
+
+  // bcrypt only reads 72 bytes, and each ş takes 2: this is 37 characters but exactly 72 bytes.
+  const longest = `A1${'ş'.repeat(35)}`;
+
+  it('accepts the right password of exactly 72 bytes', async () => {
+    expect(await verifyPassword(longest, await hashPassword(longest))).toBe(true);
+  });
+
+  it('rejects an attempt over 72 bytes even when its first 72 bytes are right', async () => {
+    expect(await verifyPassword(`${longest}X`, await hashPassword(longest))).toBe(false);
+  });
 });
