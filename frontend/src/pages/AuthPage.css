@@ -1,0 +1,105 @@
+/* Shared styles of LoginPage and RegisterPage (SCRUM-20). Owner: Sezin.
+   The two pages have the same layout, so they share this one file.
+   Uses only the variables and classes from global.css. */
+.auth-page {
+  padding-top: 72px;
+  padding-bottom: var(--section-gap);
+}
+
+/* Intro text on the left, form card on the right; they stack below 768 px (9.5). */
+.auth-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+  gap: 64px;
+  align-items: start;
+}
+
+.auth-intro {
+  padding-top: 24px;
+}
+
+.auth-lead {
+  max-width: 440px;
+  color: var(--champagne);
+  margin-top: 24px;
+}
+
+.auth-perks {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 14px;
+}
+
+.auth-perks li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.auth-perks svg {
+  flex: 0 0 auto;
+  color: var(--champagne);
+}
+
+.auth-card {
+  padding: 40px;
+}
+
+.auth-title {
+  font-size: 32px;
+  margin-bottom: 24px;
+}
+
+.auth-notice {
+  margin: -8px 0 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-input);
+  background: var(--surface-2);
+  font-size: 14px;
+  color: var(--champagne);
+}
+
+/* textarea uses the shared .input class; keep it from being dragged wider than the card. */
+.auth-card textarea.input {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.auth-form-error {
+  margin: 0 0 16px;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.auth-switch {
+  margin: 24px 0 0;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    padding-top: 40px;
+  }
+
+  .auth-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .auth-intro {
+    padding-top: 0;
+  }
+
+  .auth-card {
+    padding: 28px 20px;
+  }
+}
