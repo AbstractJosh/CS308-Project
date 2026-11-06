@@ -1,0 +1,203 @@
+/* Product page (handbook 9.4 to 9.6). Uses only the variables and classes from global.css. */
+.product-page {
+  padding-top: 56px;
+  padding-bottom: var(--section-gap);
+}
+
+/* Two columns: photos left, info right. They stack below 768 px (9.5). */
+.product-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: start;
+}
+
+/* ---------- Gallery ---------- */
+.product-gallery {
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+}
+
+/* Big photo: --photo-bg panel with radius 24 (9.5 "big photos 24 px"). */
+.product-photo-main {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-photo);
+  padding: 40px;
+}
+
+.product-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.product-thumb {
+  width: 72px;
+  height: 72px;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-input);
+  opacity: 0.7;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+
+.product-thumb:hover {
+  opacity: 1;
+}
+
+.product-thumb-active {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+/* ---------- Info ---------- */
+.product-title {
+  font-size: 44px;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+
+/* Model code: DM Mono, small, uppercase, --muted (9.4). */
+.product-model {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.product-price-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.product-price {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.product-stock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin: 8px 0 24px;
+}
+
+.product-stock::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.product-stock-ok {
+  color: var(--success);
+}
+
+.product-stock-low {
+  color: var(--accent);
+}
+
+.product-stock-out {
+  color: var(--error);
+}
+
+.product-description {
+  color: var(--champagne);
+  margin-bottom: 32px;
+}
+
+.product-buy {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.product-add {
+  flex: 1;
+  min-width: 200px;
+}
+
+.product-soldout-note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------- Specs list with --line separators ---------- */
+.product-specs {
+  margin: 40px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.product-spec {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.product-spec dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  padding-top: 3px;
+}
+
+.product-spec dd {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .product-page {
+    padding-top: 32px;
+  }
+
+  .product-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .product-gallery {
+    position: static;
+  }
+
+  .product-photo-main {
+    padding: 24px;
+  }
+
+  /* Thumbnails scroll sideways instead of wrapping. */
+  .product-thumbs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .product-thumb {
+    flex: 0 0 auto;
+    width: 60px;
+    height: 60px;
+  }
+
+  .product-title {
+    font-size: 34px;
+  }
+
+  .product-spec {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+}
