@@ -18,7 +18,8 @@ describe('App routes', () => {
   it('has a page for every Sprint 1 route', () => {
     for (const path of ['/', '/shop', '/shop/coffee', '/products/1', '/login', '/register']) {
       const { unmount } = renderAt(path);
-      expect(screen.getByText('Coming soon')).toBeInTheDocument();
+      // Each page owner replaces their placeholder, so only check that the route has a page.
+      expect(screen.queryByText('Page not found')).not.toBeInTheDocument();
       unmount();
     }
   });
