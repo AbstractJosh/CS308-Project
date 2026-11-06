@@ -10,6 +10,11 @@ export const healthApi = {
 };
 
 // ===== AUTH: authApi (Ulukan) =====
+export const authApi = {
+  register: (form) => api('/auth/register', { method: 'POST', body: form, auth: false }),
+  login: (credentials) => api('/auth/login', { method: 'POST', body: credentials, auth: false }),
+  me: () => api('/auth/me'),
+};
 
 // ===== CATALOG: productsApi, categoriesApi (Luis, Sidar) =====
 
