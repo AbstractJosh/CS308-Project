@@ -78,6 +78,14 @@
   border-color: var(--accent);
 }
 
+.site-logo:focus-visible,
+.site-nav-link:focus-visible,
+.site-icon-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
 .site-menu-button {
   display: none;
 }
@@ -125,10 +133,14 @@
     left: 0;
     right: 0;
     flex-direction: column;
-    gap: 16px;
-    padding: 20px var(--side-padding);
+    gap: 0;
+    padding: 8px var(--side-padding);
     background: var(--surface);
     border-bottom: 1px solid var(--line);
+  }
+
+  .site-nav-open .site-nav-link {
+    padding: 12px 0;
   }
 }
 

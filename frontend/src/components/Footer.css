@@ -18,6 +18,12 @@
   gap: 2px;
 }
 
+.site-footer-logo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
 .site-footer-name {
   font-family: var(--font-serif);
   font-size: 22px;
@@ -35,6 +41,7 @@
 .site-footer-note {
   margin: 0;
   text-align: right;
+  text-wrap: pretty;
 }
 
 @media (max-width: 768px) {

@@ -117,7 +117,7 @@ export default function HomePage() {
 
       {status === 'error' && (
         <section className="section">
-          <div className="container empty-state">
+          <div className="container empty-state home-message">
             <h3>Something went wrong</h3>
             <p className="muted">{error}</p>
             <button type="button" className="btn btn-secondary" onClick={() => setAttempt((count) => count + 1)}>
