@@ -1,0 +1,418 @@
+/*
+  Crema & Co. global styles (handbook 9.3 to 9.6).
+  Only the Scrum Master changes this file. Pages and components keep their own
+  styles in a CSS file next to them (ProductCard.css) and use the variables and
+  shared classes below:
+
+  Layout:  container, section, app-main, divider
+  Text:    eyebrow, muted, text-link (in headings, <em> is the italic gold word)
+  Buttons: btn + btn-primary | btn-secondary
+  Chips:   chip, chip-active
+  Cards:   card, photo-panel
+  Forms:   field, field-label, input (+ input-error), field-error
+  Labels:  badge, status-pill + status-processing | status-in-transit |
+           status-delivered | status-cancelled
+  States:  empty-state, toast (+ toast-success | toast-error)
+*/
+
+/* ---------- 9.3 Colours ---------- */
+:root {
+  --bg: #150c0c;
+  --surface: #1e1311;
+  --surface-2: #34150f;
+  --accent: #d39858;
+  --accent-hover: #e2ae74;
+  --accent-dark: #85431e;
+  --champagne: #eaceaa;
+  --text: #f6eee4;
+  --muted: rgba(234, 206, 170, 0.6);
+  --line: rgba(234, 206, 170, 0.14);
+  --photo-bg: #f4ede4;
+  --success: #8db580;
+  --error: #e07a6a;
+
+  /* 9.4 Typography */
+  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* 9.5 Layout */
+  --content-width: 1200px;
+  --side-padding: 24px;
+  --section-gap: 96px;
+  --radius-card: 16px;
+  --radius-photo: 24px;
+  --radius-input: 12px;
+  --radius-pill: 999px;
+  --header-height: 72px;
+  --focus-ring: 0 0 0 3px rgba(211, 152, 88, 0.25);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --section-gap: 56px;
+  }
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* ---------- 9.4 Headings ---------- */
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+h1 {
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+h2 {
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+h3 {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* The one italic gold word or line: <h1>Better coffee, <em>starts at home.</em></h1> */
+h1 em,
+h2 em,
+h3 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+p {
+  margin: 0 0 16px;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 40px;
+  }
+  h2 {
+    font-size: 30px;
+  }
+}
+
+/* ---------- 9.5 Layout ---------- */
+.container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--side-padding);
+}
+
+.section {
+  padding: var(--section-gap) 0;
+}
+
+.app-main {
+  min-height: calc(100vh - var(--header-height));
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 32px 0;
+}
+
+/* ---------- Text helpers ---------- */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.text-link {
+  color: var(--accent);
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 9.6 Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-primary:active {
+  background: var(--accent-dark);
+  color: var(--text);
+}
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ---------- Category chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--champagne);
+  font-size: 14px;
+  white-space: nowrap;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+.chip-active,
+.chip-active:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+/* ---------- Cards and photo panels ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* Light panel behind product photos (their white backgrounds then look intentional). */
+.photo-panel {
+  background: var(--photo-bg);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.photo-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ---------- Forms ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.field-label {
+  font-size: 14px;
+  color: var(--champagne);
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-input);
+  color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.input-error,
+.input-error:focus {
+  border-color: var(--error);
+}
+
+.field-error {
+  font-size: 14px;
+  color: var(--error);
+}
+
+/* ---------- Badges and status pills ---------- */
+.badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(21, 12, 12, 0.85);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+}
+
+.status-processing {
+  color: var(--champagne);
+}
+
+.status-in-transit {
+  color: var(--accent);
+}
+
+.status-delivered {
+  color: var(--success);
+}
+
+.status-cancelled {
+  color: var(--error);
+}
+
+/* ---------- Empty, loading and error states ---------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.empty-state .btn {
+  margin-top: 12px;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  max-width: calc(100% - 48px);
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.toast-success {
+  border-color: rgba(141, 181, 128, 0.5);
+}
+
+.toast-error {
+  border-color: var(--error);
+}
