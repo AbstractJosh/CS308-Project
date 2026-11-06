@@ -23,6 +23,12 @@ section, never rewrite or delete other people's lines.
 
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
+| POST /auth/register | - | `{ name, email, password, taxId, homeAddress }` | 201 `{ user, token }` | 400, 409, 429 |
+| POST /auth/login | - | `{ email, password }` | 200 `{ user, token }` | 400, 401, 429 |
+| GET /auth/me | user | - | 200 `{ user }` | 401, 404 |
+
+`user` is `{ id, name, email, taxId, homeAddress, role, createdAt, updatedAt }`, never the password hash.
+429: login and register allow 50 requests per 15 minutes per IP.
 
 ## Catalog (Luis, Sidar)
 

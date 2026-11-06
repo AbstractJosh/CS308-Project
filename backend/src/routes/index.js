@@ -5,6 +5,11 @@ import { Router } from 'express';
 // routes below). Never rewrite, reorder or delete other people's lines.
 
 // ----- imports: AUTH (Ulukan) -----
+// validate and requireAuth can only be imported once in this file. Other areas: use them, don't import them again.
+import * as authController from '../controllers/auth.controller.js';
+import { authLimiter, requireAuth } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { loginSchema, registerSchema } from '../utils/validators.js';
 
 // ----- imports: CATALOG (Luis, Sidar) -----
 // validate is imported under its own name here so this block does not clash with the AUTH block's import.
@@ -26,6 +31,9 @@ router.get('/health', (req, res) => {
 });
 
 // ===== AUTH (Ulukan) =====
+router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
+router.post('/auth/login', authLimiter, validate(loginSchema), authController.login);
+router.get('/auth/me', requireAuth, authController.me);
 
 // ===== CATALOG (Luis, Sidar) =====
 router.get('/categories', categoriesController.list);
