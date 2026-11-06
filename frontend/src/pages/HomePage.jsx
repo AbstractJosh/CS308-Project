@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import ProductCard from '../components/ProductCard.jsx';
 import { formatPrice } from '../utils/format.js';
 import { productImage } from '../utils/images.js';
-import { categoriesApi, productsApi } from '../utils/fakeCatalog.js';
+import { categoriesApi, productsApi } from '../api/endpoints.js';
 import './HomePage.css';
 
 const BEST_SELLER_COUNT = 3;

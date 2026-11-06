@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
-import { categoriesApi, productsApi } from '../utils/fakeCatalog.js';
+import { categoriesApi, productsApi } from '../api/endpoints.js';
 import './CatalogPage.css';
 
 function PageTitle({ category }) {
@@ -68,7 +68,11 @@ export default function CatalogPage() {
   useEffect(() => {
     let stale = false;
     setStatus('loading');
-    Promise.all([categoriesApi.list(), productsApi.list(slug)])
+    const productRequest = productsApi.list(slug).catch((err) => {
+      if (err.status === 400 && slug) return { products: [] };
+      throw err;
+    });
+    Promise.all([categoriesApi.list(), productRequest])
       .then(([categoryData, productData]) => {
         if (stale) return;
         setCategories(categoryData.categories);
