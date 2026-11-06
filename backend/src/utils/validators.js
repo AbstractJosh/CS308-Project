@@ -53,6 +53,16 @@ export const loginSchema = z.object({
 });
 
 // ===== CATALOG (Luis, Sidar) =====
+// SCRUM-13: GET /products?category=<slug>. Sprint 2: Sidar adds q, sort and inStock here.
+export const productListQuerySchema = z.object({
+  category: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(80, { message: 'Invalid category' })
+    .regex(/^[a-z0-9-]+$/, { message: 'Invalid category' })
+    .optional(),
+});
 
 // ===== CART (Luis) =====
 

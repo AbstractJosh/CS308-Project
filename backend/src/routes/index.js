@@ -12,6 +12,11 @@ import { validate } from '../middleware/validate.js';
 import { loginSchema, registerSchema } from '../utils/validators.js';
 
 // ----- imports: CATALOG (Luis, Sidar) -----
+// validate is imported under its own name here so this block does not clash with the AUTH block's import.
+import * as productsController from '../controllers/products.controller.js';
+import * as categoriesController from '../controllers/categories.controller.js';
+import { validate as validateCatalog } from '../middleware/validate.js';
+import { idParamSchema, productListQuerySchema } from '../utils/validators.js';
 
 // ----- imports: CART (Luis) -----
 
@@ -31,6 +36,9 @@ router.post('/auth/login', authLimiter, validate(loginSchema), authController.lo
 router.get('/auth/me', requireAuth, authController.me);
 
 // ===== CATALOG (Luis, Sidar) =====
+router.get('/categories', categoriesController.list);
+router.get('/products', validateCatalog(productListQuerySchema, 'query'), productsController.list);
+router.get('/products/:id', validateCatalog(idParamSchema, 'params'), productsController.getById);
 
 // ===== CART (Luis) =====
 
