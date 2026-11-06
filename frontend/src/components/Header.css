@@ -131,3 +131,19 @@
     border-bottom: 1px solid var(--line);
   }
 }
+
+@media (max-width: 360px) {
+  .site-logo-name {
+    font-size: 14px;
+    letter-spacing: 0.1em;
+  }
+
+  .site-actions {
+    gap: 2px;
+  }
+
+  .site-icon-button {
+    width: 36px;
+    height: 36px;
+  }
+}
