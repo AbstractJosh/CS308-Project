@@ -12,6 +12,17 @@ export const healthApi = {
 // ===== AUTH: authApi (Ulukan) =====
 
 // ===== CATALOG: productsApi, categoriesApi (Luis, Sidar) =====
+// SCRUM-13: productsApi.list() -> { products }, productsApi.list('coffee') -> one category,
+// productsApi.get(id) -> { product }, categoriesApi.list() -> { categories }.
+export const productsApi = {
+  list: (category) =>
+    api(category ? `/products?category=${encodeURIComponent(category)}` : '/products', { auth: false }),
+  get: (id) => api(`/products/${encodeURIComponent(id)}`, { auth: false }),
+};
+
+export const categoriesApi = {
+  list: () => api('/categories', { auth: false }),
+};
 
 // ===== CART: cartApi (Luis, Sezin) =====
 

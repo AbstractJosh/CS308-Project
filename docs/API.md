@@ -23,11 +23,24 @@ section, never rewrite or delete other people's lines.
 
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
+| POST /auth/register | - | `{ name, email, password, taxId, homeAddress }` | 201 `{ user, token }` | 400, 409, 429 |
+| POST /auth/login | - | `{ email, password }` | 200 `{ user, token }` | 400, 401, 429 |
+| GET /auth/me | user | - | 200 `{ user }` | 401, 404 |
+
+`user` is `{ id, name, email, taxId, homeAddress, role, createdAt, updatedAt }`, never the password hash.
+429: login and register allow 50 requests per 15 minutes per IP.
 
 ## Catalog (Luis, Sidar)
 
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
+| GET /categories | - | - | 200 `{ categories }` | - |
+| GET /products | - | query `category` (slug, optional) | 200 `{ products }` | 400 (bad category) |
+| GET /products/:id | - | - | 200 `{ product }` | 400 (bad id), 404 |
+
+`category` is `{ id, name, slug, description, productCount }` (productCount counts active products only).
+`product` is `{ id, name, model, serialNumber, description, quantityInStock, price, warrantyStatus, distributor, imageCount, popularity, categoryId, createdAt, updatedAt, inStock, category: { id, name, slug } }`, never `cost` or `isActive`.
+Only active products are returned; out-of-stock products are still listed with `inStock: false`. An unknown category slug gives `{ "products": [] }`. Products come in id order.
 
 ## Cart (Luis)
 
