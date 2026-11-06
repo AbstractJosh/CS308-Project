@@ -28,6 +28,13 @@ section, never rewrite or delete other people's lines.
 
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
+| GET /categories | - | - | 200 `{ categories }` | - |
+| GET /products | - | query `category` (slug, optional) | 200 `{ products }` | 400 (bad category) |
+| GET /products/:id | - | - | 200 `{ product }` | 400 (bad id), 404 |
+
+`category` is `{ id, name, slug, description, productCount }` (productCount counts active products only).
+`product` is `{ id, name, model, serialNumber, description, quantityInStock, price, warrantyStatus, distributor, imageCount, popularity, categoryId, createdAt, updatedAt, inStock, category: { id, name, slug } }`, never `cost` or `isActive`.
+Only active products are returned; out-of-stock products are still listed with `inStock: false`. An unknown category slug gives `{ "products": [] }`. Products come in id order.
 
 ## Cart (Luis)
 
