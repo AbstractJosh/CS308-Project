@@ -5,6 +5,8 @@ import { Routes, Route } from 'react-router-dom';
 // Never rewrite, reorder or delete other people's lines.
 
 // ----- imports: LAYOUT (Sidar: Header, Footer) -----
+import Header from './components/Header.jsx';
+import Footer from './components/Footer.jsx';
 
 // ----- imports: PAGES (owners replace their own placeholder page file, not these lines) -----
 import HomePage from './pages/HomePage.jsx';
@@ -20,6 +22,7 @@ export default function App() {
   return (
     <>
       {/* LAYOUT: Sidar puts <Header /> here */}
+      <Header />
       <main className="app-main">
         <Routes>
           {/* ===== Sprint 1 ===== */}
@@ -37,6 +40,7 @@ export default function App() {
         </Routes>
       </main>
       {/* LAYOUT: Sidar puts <Footer /> here */}
+      <Footer />
     </>
   );
 }
