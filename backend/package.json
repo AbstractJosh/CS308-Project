@@ -1,0 +1,39 @@
+{
+  "name": "crema-backend",
+  "version": "0.1.0",
+  "description": "Crema & Co. online store API (CS308 Team 10)",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "db:migrate": "knex migrate:latest --knexfile knexfile.js",
+    "db:rollback": "knex migrate:rollback --knexfile knexfile.js",
+    "db:seed": "knex seed:run --knexfile knexfile.js",
+    "db:reset": "knex migrate:rollback --all --knexfile knexfile.js && knex migrate:latest --knexfile knexfile.js && knex seed:run --knexfile knexfile.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.3",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "knex": "^3.3.0",
+    "morgan": "^1.12.1",
+    "pg": "^8.23.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.1",
+    "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "vite": "^6.4.5"
+  }
+}
