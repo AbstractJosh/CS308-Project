@@ -52,6 +52,44 @@ Only active products are returned; out-of-stock products are still listed with `
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
 
+### Fake bank rules (Ulukan)
+
+No real bank is called, so use only these test cards, with any valid expiry and CVV.
+
+| Card number | Result |
+|---|---|
+| `4242 4242 4242 4242` | Approved: 201 |
+| `4000 0000 0000 0002` | Rejected by the bank: 402 |
+| `4242 4242 4242 4241` | Invalid number (fails the Luhn check): 400 |
+
+The bank approves every valid number except those ending in `0002`.
+`bankService.charge({ cardNumber, amount })` in `backend/src/services/bank.service.js` returns `{ approved, reference }`.
+
+`card` in the body of `POST /checkout` is `{ number, holderName, expiryMonth, expiryYear, cvv }`:
+
+- `number`: string, 13 to 19 digits, passes the Luhn check. Spaces are removed first.
+- `holderName`: string, 2 to 100 characters after trimming.
+- `expiryMonth`: whole number, 1 to 12.
+- `expiryYear`: whole number with 4 digits. A form that shows MM/YY sends `2029` for `29`.
+- Expiry must be this month or later, by the server's date. A card ending 11/2026 works until the end of November 2026.
+- `cvv`: string, 3 or 4 digits for every card. It is a string so a leading zero is kept.
+
+A wrong field gives 400 with `details`, where `field` is the name below:
+
+| `details[].field` | `message` |
+|---|---|
+| `card.number` | `Card number is required`, `Enter a valid card number` |
+| `card.holderName` | `Name on card is required`, `Name on card must be 2 to 100 characters` |
+| `card.expiryMonth` | `Expiry month is required`, `Enter a valid expiry month`, `This card has expired` |
+| `card.expiryYear` | `Expiry year is required`, `Enter a valid expiry year` |
+| `card.cvv` | `CVV is required`, `CVV must be 3 or 4 digits` |
+
+Rejected by the bank: 402 `{ "error": "Payment was rejected by the bank" }`. Nothing is saved and the cart and stock stay the same, so the user can try another card.
+
+Checks run in this order: card fields (400), empty cart (400 `Your cart is empty`), stock (409), bank (402).
+
+Only the last 4 digits and a salted hash of the number are saved, never the full number or the CVV.
+
 ## Admin (Neslihan, Murat, Sidar)
 
 | Method and path | Auth | Request | Success | Errors |
