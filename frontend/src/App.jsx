@@ -20,6 +20,13 @@ import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
 
+// ----- imports: ADMIN (Neslihan: layout; page owners add their admin page imports here) -----
+import RoleRoute from './components/RoleRoute.jsx';
+import AdminLayout from './pages/admin/AdminLayout.jsx';
+import AdminHome from './pages/admin/AdminHome.jsx';
+import AdminComingSoon from './pages/admin/AdminComingSoon.jsx';
+import { ADMIN_ROLES } from './pages/admin/adminMenu.js';
+
 export default function App() {
   return (
     <>
@@ -44,6 +51,20 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ===== ADMIN: only product and sales managers (SCRUM-56) ===== */}
+          <Route
+            path="/admin"
+            element={
+              <RoleRoute roles={ADMIN_ROLES}>
+                <AdminLayout />
+              </RoleRoute>
+            }
+          >
+            <Route index element={<AdminHome />} />
+            {/* Page owners add theirs here, e.g. <Route path="deliveries" element={<DeliveriesPage />} /> */}
+            <Route path="*" element={<AdminComingSoon />} />
+          </Route>
 
           {/* Keep this one last */}
           <Route path="*" element={<NotFoundPage />} />
