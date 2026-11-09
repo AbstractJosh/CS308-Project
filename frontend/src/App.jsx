@@ -17,6 +17,8 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 
 // ----- imports: Sprint 2 and later pages -----
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import CheckoutPage from './pages/CheckoutPage.jsx';
 
 export default function App() {
   return (
@@ -34,6 +36,14 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* ===== Sprint 2 and later: add routes here ===== */}
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute reason="checkout">
+                <CheckoutPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Keep this one last */}
           <Route path="*" element={<NotFoundPage />} />
