@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import App from '../src/App.jsx';
 import { tokenStore } from '../src/api/client.js';
@@ -66,10 +66,11 @@ describe('admin area', () => {
   it('opens the first product manager page from /admin, with only product manager links', async () => {
     renderAt('/admin', 'PRODUCT_MANAGER');
     expect(await screen.findByText('Product manager')).toBeInTheDocument();
-    expect(screen.getByTestId('address')).toHaveTextContent(/^\/admin\/deliveries$/);
+    // The redirect from /admin happens just after the first render, so wait for it.
+    await waitFor(() => expect(screen.getByTestId('address')).toHaveTextContent(/^\/admin\/deliveries$/));
     const links = screen.getAllByRole('link').filter((link) => link.className.includes('admin-menu-link'));
     expect(links.map((link) => link.textContent)).toEqual(['Deliveries', 'Products', 'Stock', 'Comments', 'Invoices']);
-    expect(screen.getByText('This page is built in Sprint 2.')).toBeInTheDocument();
+    expect(await screen.findByText('This page is built in Sprint 2.')).toBeInTheDocument();
   });
 
   it('shows the sales manager their own pages', async () => {
@@ -77,7 +78,7 @@ describe('admin area', () => {
     expect(await screen.findByText('Sales manager')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Pricing' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Deliveries' })).not.toBeInTheDocument();
-    expect(screen.getByText('This page is built in Sprint 4.')).toBeInTheDocument();
+    expect(await screen.findByText('This page is built in Sprint 4.')).toBeInTheDocument();
   });
 
   it("blocks a manager from the other manager's page", async () => {
