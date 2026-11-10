@@ -1,0 +1,70 @@
+/* Admin frame (handbook 9.6 "Admin pages"). Owner: Neslihan (SCRUM-56). Uses only global.css variables. */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.admin-menu {
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  padding-right: 24px;
+  border-right: 1px solid var(--line);
+}
+
+.admin-menu nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.admin-menu-link {
+  padding: 10px 14px;
+  border-radius: var(--radius-input);
+  color: var(--champagne);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.admin-menu-link:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.admin-menu-link.active {
+  color: var(--bg);
+  background: var(--accent);
+}
+
+.admin-content {
+  min-width: 0;
+}
+
+.admin-coming-soon {
+  padding-top: 0;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .admin-menu {
+    position: static;
+    padding-right: 0;
+    padding-bottom: 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .admin-menu nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+}
