@@ -46,6 +46,22 @@ Only active products are returned; out-of-stock products are still listed with `
 
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
+| GET /cart | user | - | 200 `{ cart }` | 401 |
+| POST /cart/items | user | `{ productId, quantity }` | 200 `{ cart }` | 400, 401, 404 |
+| PATCH /cart/items/:productId | user | `{ quantity }` | 200 `{ cart }` | 400, 401, 404 |
+| DELETE /cart/items/:productId | user | - | 200 `{ cart }` | 400 (bad id), 401 |
+| DELETE /cart | user | - | 200 `{ cart }` | 401 |
+| POST /cart/merge | user | `{ items: [{ productId, quantity }] }` (max 50) | 200 `{ cart }` | 400, 401 |
+
+`cart` is `{ items: [{ productId, quantity, product }], itemCount, subtotal }`. `product` is the Product object above, `itemCount` counts units (2 grinders = 2) and `subtotal` is rounded to 2 decimals. Every cart route answers with the whole cart, so the page can just replace its state. Lines come in the order they were added; removed products are not shown.
+
+Guests keep their cart in `localStorage` (`crema_guest_cart`); these routes are only for logged-in users.
+
+- `quantity` is a whole number from 1 to 99 (400 otherwise).
+- POST /cart/items adds to what is already in the cart, capped at stock. Missing or removed product: 404 `Product not found`. No stock: 400 `This product is out of stock`. The cart already holds all the stock: 400 `Only N in stock`.
+- PATCH sets the quantity. Above stock: 400 `Only N in stock`. Product not in the cart: 404 `This product is not in your cart`.
+- DELETE of a product that is not in the cart is not an error.
+- POST /cart/merge runs once after login with the guest cart. Quantities of the same product are added and capped at stock; products that are gone or out of stock are dropped. It runs in one transaction. The frontend then clears `crema_guest_cart`.
 
 ## Orders (Luis, Ulukan)
 

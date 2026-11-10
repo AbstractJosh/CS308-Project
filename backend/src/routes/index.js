@@ -19,6 +19,14 @@ import { validate as validateCatalog } from '../middleware/validate.js';
 import { idParamSchema, productListQuerySchema } from '../utils/validators.js';
 
 // ----- imports: CART (Luis) -----
+// Uses requireAuth and validate from the AUTH block above.
+import * as cartController from '../controllers/cart.controller.js';
+import {
+  cartItemSchema,
+  cartMergeSchema,
+  cartProductParamSchema,
+  cartQuantitySchema,
+} from '../utils/validators.js';
 
 // ----- imports: ORDERS (Luis, Ulukan) -----
 
@@ -41,6 +49,23 @@ router.get('/products', validateCatalog(productListQuerySchema, 'query'), produc
 router.get('/products/:id', validateCatalog(idParamSchema, 'params'), productsController.getById);
 
 // ===== CART (Luis) =====
+router.get('/cart', requireAuth, cartController.get);
+router.post('/cart/items', requireAuth, validate(cartItemSchema), cartController.addItem);
+router.patch(
+  '/cart/items/:productId',
+  requireAuth,
+  validate(cartProductParamSchema, 'params'),
+  validate(cartQuantitySchema),
+  cartController.updateItem,
+);
+router.delete(
+  '/cart/items/:productId',
+  requireAuth,
+  validate(cartProductParamSchema, 'params'),
+  cartController.removeItem,
+);
+router.delete('/cart', requireAuth, cartController.clear);
+router.post('/cart/merge', requireAuth, validate(cartMergeSchema), cartController.merge);
 
 // ===== ORDERS (Luis, Ulukan) =====
 
