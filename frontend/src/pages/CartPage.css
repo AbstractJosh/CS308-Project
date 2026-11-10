@@ -1,0 +1,196 @@
+/* Cart page (handbook 9.6 "Cart and checkout"). Uses only the variables and classes
+   from global.css. .cart-page is not also a .container: global.css loads after this
+   file, and its .container padding would reset the padding-top below to 0. */
+.cart-page {
+  padding-top: 56px;
+  padding-bottom: var(--section-gap);
+}
+
+.cart-header {
+  margin-bottom: 40px;
+}
+
+.cart-title {
+  font-size: 44px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+/* Items on the left, summary on the right; they stack below 768 px (9.5). */
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 48px;
+  align-items: start;
+}
+
+/* ---------- Items ---------- */
+.cart-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: start;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Thumb on --photo-bg (9.6). */
+.cart-item-photo {
+  display: block;
+  width: 112px;
+  height: 112px;
+  padding: 10px;
+  border-radius: var(--radius-card);
+}
+
+.cart-item-name {
+  display: inline-block;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.cart-item-name:hover {
+  color: var(--accent);
+}
+
+/* Model code: DM Mono, small, uppercase, --muted (9.4). */
+.cart-item-model {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  margin: 6px 0 4px;
+}
+
+.cart-item-unit {
+  margin: 0 0 14px;
+}
+
+.cart-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* "Remove" is a text link (9.6): --accent, underline on hover. */
+.cart-item-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.cart-item-remove:hover {
+  text-decoration: underline;
+}
+
+.cart-item-total {
+  font-weight: 700;
+  font-size: 17px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* ---------- Summary card: --surface, radius 16, sticky (9.6) ---------- */
+.cart-summary {
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  padding: 32px;
+}
+
+.cart-summary-title {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.cart-summary-rows {
+  margin: 0;
+}
+
+.cart-summary-rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cart-summary-rows dt {
+  color: var(--champagne);
+}
+
+.cart-summary-rows dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.cart-summary-total dd {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.cart-summary-note {
+  margin: 14px 0 0;
+}
+
+.cart-checkout {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .cart-page {
+    padding-top: 32px;
+  }
+
+  .cart-title {
+    font-size: 34px;
+  }
+
+  .cart-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .cart-summary {
+    position: static;
+    padding: 24px 20px;
+  }
+
+  /* Photo and text side by side, the line total under the text. */
+  .cart-item {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .cart-item-photo {
+    width: 80px;
+    height: 80px;
+    padding: 6px;
+  }
+
+  .cart-item-name {
+    font-size: 19px;
+  }
+
+  .cart-item-total {
+    grid-column: 2;
+  }
+}

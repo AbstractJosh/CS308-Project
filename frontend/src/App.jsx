@@ -19,6 +19,7 @@ import NotFoundPage from './pages/NotFoundPage.jsx';
 // ----- imports: Sprint 2 and later pages -----
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
+import CartPage from './pages/CartPage.jsx';
 
 // ----- imports: ADMIN (Neslihan: layout; page owners add their admin page imports here) -----
 import RoleRoute from './components/RoleRoute.jsx';
@@ -51,6 +52,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/cart" element={<CartPage />} />
 
           {/* ===== ADMIN: only product and sales managers (SCRUM-56) ===== */}
           <Route
