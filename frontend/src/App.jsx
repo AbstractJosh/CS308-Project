@@ -19,6 +19,7 @@ import NotFoundPage from './pages/NotFoundPage.jsx';
 // ----- imports: Sprint 2 and later pages -----
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
+import CartPage from './pages/CartPage.jsx';
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/cart" element={<CartPage />} />
 
           {/* Keep this one last */}
           <Route path="*" element={<NotFoundPage />} />
