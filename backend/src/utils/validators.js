@@ -69,6 +69,45 @@ export const productListQuerySchema = z.object({
 });
 
 // ===== CART (Luis) =====
+// Ids that come in the URL or the body: whole numbers that fit in a PostgreSQL int.
+const cartProductId = z.coerce
+  .number({ required_error: 'Product is required', invalid_type_error: 'Invalid product' })
+  .int({ message: 'Invalid product' })
+  .positive({ message: 'Invalid product' })
+  .max(2147483647, { message: 'Invalid product' });
+
+// Quantity of one cart line: 1 to 99 (handbook 7.3). Not coerced, so "2" in a JSON body is refused.
+const cartQuantity = z
+  .number({ required_error: 'Quantity is required', invalid_type_error: 'Quantity must be a number' })
+  .int({ message: 'Quantity must be a whole number' })
+  .min(1, { message: 'Quantity must be 1 to 99' })
+  .max(99, { message: 'Quantity must be 1 to 99' });
+
+// POST /cart/items
+export const cartItemSchema = z.object({
+  productId: cartProductId,
+  quantity: cartQuantity,
+});
+
+// PATCH /cart/items/:productId (body)
+export const cartQuantitySchema = z.object({
+  quantity: cartQuantity,
+});
+
+// PATCH and DELETE /cart/items/:productId (params)
+export const cartProductParamSchema = z.object({
+  productId: cartProductId,
+});
+
+// POST /cart/merge: the guest cart from localStorage, at most 50 lines.
+export const cartMergeSchema = z.object({
+  items: z
+    .array(z.object({ productId: cartProductId, quantity: cartQuantity }), {
+      required_error: 'Items are required',
+      invalid_type_error: 'Items must be a list',
+    })
+    .max(50, { message: 'A cart can have at most 50 items' }),
+});
 
 // ===== ORDERS (Luis, Ulukan) =====
 
