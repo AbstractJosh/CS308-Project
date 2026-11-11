@@ -72,6 +72,11 @@ export const productListQuerySchema = z.object({
     .max(100, { message: 'Search must be at most 100 characters' })
     .optional()
     .transform((value) => value || undefined),
+  sort: z
+    .enum(['price_asc', 'price_desc', 'popularity', 'newest'], {
+      errorMap: () => ({ message: 'Sort must be price_asc, price_desc, popularity or newest' }),
+    })
+    .optional(),
 });
 
 // ===== CART (Luis) =====
