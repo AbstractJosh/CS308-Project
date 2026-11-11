@@ -47,3 +47,8 @@ export const cartApi = {
 // ===== ORDERS: ordersApi, checkoutApi (Luis, Ulukan, Sidar) =====
 
 // ===== ADMIN: adminApi (Neslihan, Murat, Sidar) =====
+// SCRUM-57 (Neslihan): delivery list for the product manager. completed: true, false or undefined (all).
+export const adminApi = {
+  deliveries: (completed) =>
+    api(completed === undefined ? '/admin/deliveries' : `/admin/deliveries?completed=${completed}`),
+};
