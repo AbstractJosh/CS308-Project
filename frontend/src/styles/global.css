@@ -416,3 +416,24 @@ p {
 .toast-error {
   border-color: var(--error);
 }
+
+/* ---------- Cart count in the header (SCRUM-71, handbook 9.6) ---------- */
+.site-cart-button {
+  position: relative;
+}
+
+.site-cart-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 18px;
+  text-align: center;
+}

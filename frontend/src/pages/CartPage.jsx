@@ -5,22 +5,34 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { formatPrice } from '../utils/format.js';
 import { productImage } from '../utils/images.js';
-import { useFakeCart } from './CartPage.fakeData.js';
+import { useCart } from '../context/CartContext.jsx';
 import './CartPage.css';
 
 // Cart page, route /cart (handbook 9.6 "Cart and checkout", 9.8). Owner: Sezin (SCRUM-52).
 // Works for guests and logged-in users; checkout itself needs login (handbook 7.3).
 export default function CartPage() {
   const { user } = useAuth();
-  // TODO(Sprint 2): use useCart() from CartContext instead; it returns the same shape.
-  const { cart, updateQuantity, removeItem } = useFakeCart();
+  const { notify } = useToast();
+  // SCRUM-71: the real cart (CartContext). A failed change (for example "Only 3 in stock") is a toast.
+  const { cart, ready, updateQuantity, removeItem } = useCart();
+  const showError = (err) => notify(err.message, 'error');
+
+  if (!ready) {
+    return (
+      <section className="cart-page">
+        <div className="container section empty-state">
+          <p className="muted">Loading your cart…</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <CartView
       cart={cart}
       loggedIn={Boolean(user)}
-      onQuantityChange={updateQuantity}
-      onRemove={removeItem}
+      onQuantityChange={(productId, quantity) => updateQuantity(productId, quantity).catch(showError)}
+      onRemove={(productId) => removeItem(productId).catch(showError)}
     />
   );
 }

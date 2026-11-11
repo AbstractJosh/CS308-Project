@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useCart } from '../context/CartContext.jsx';
 import './Header.css';
 
 const ICON_PROPS = { size: 20, strokeWidth: 1.5 };
@@ -13,6 +14,7 @@ const ADMIN_PATHS = {
 
 export default function Header() {
   const { user } = useAuth();
+  const { cart } = useCart();
   const adminPath = user && ADMIN_PATHS[user.role];
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -72,8 +74,14 @@ export default function Header() {
           <Link to={user ? '/profile' : '/login'} className="site-icon-button" aria-label="Account" onClick={closeMenu}>
             <User {...ICON_PROPS} />
           </Link>
-          <Link to="/cart" className="site-icon-button" aria-label="Cart" onClick={closeMenu}>
+          <Link to="/cart" className="site-icon-button site-cart-button" aria-label="Cart" onClick={closeMenu}>
             <ShoppingCart {...ICON_PROPS} />
+            {/* SCRUM-71: number of units in the cart (handbook 9.6) */}
+            {cart.itemCount > 0 && (
+              <span className="site-cart-count" aria-hidden="true" data-testid="cart-count">
+                {cart.itemCount > 99 ? '99+' : cart.itemCount}
+              </span>
+            )}
           </Link>
           <button
             type="button"
