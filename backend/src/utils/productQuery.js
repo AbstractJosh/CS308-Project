@@ -28,9 +28,17 @@ export const PRODUCT_COLUMNS = [
 export function applyProductFilters(query, filters = {}) {
   query.where('p.is_active', true);
   if (filters.category) query.where('c.slug', filters.category);
+  if (filters.q) {
+    const pattern = `%${escapeLike(filters.q)}%`;
+    query.where((search) => search.whereILike('p.name', pattern).orWhereILike('p.description', pattern));
+  }
   // Default order is by id (handbook 7.1).
   query.orderBy('p.id', 'asc');
   return query;
+}
+
+export function escapeLike(term) {
+  return term.replace(/[\\%_]/g, (char) => `\\${char}`);
 }
 
 // Turns one database row (keys already camelCase from db/knex.js) into the
