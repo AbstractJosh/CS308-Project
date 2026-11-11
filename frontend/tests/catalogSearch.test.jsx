@@ -24,7 +24,7 @@ describe('CatalogPage search', () => {
     const browse = vi.spyOn(productsApi, 'browse');
     renderAt('/shop?q=%20oracle%20');
     await screen.findByText('2 PRODUCTS');
-    expect(browse).toHaveBeenCalledWith({ category: undefined, q: 'oracle' });
+    expect(browse).toHaveBeenCalledWith({ category: undefined, q: 'oracle', sort: '' });
   });
 
   it('shows the results with the search term in the title', async () => {

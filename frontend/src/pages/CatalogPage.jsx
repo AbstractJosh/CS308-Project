@@ -4,6 +4,13 @@ import ProductCard from '../components/ProductCard.jsx';
 import { categoriesApi, productsApi } from '../api/endpoints.js';
 import './CatalogPage.css';
 
+const SORT_OPTIONS = [
+  { value: '', label: 'Featured' },
+  { value: 'price_asc', label: 'Price: low to high' },
+  { value: 'price_desc', label: 'Price: high to low' },
+  { value: 'popularity', label: 'Most popular' },
+];
+
 function PageTitle({ category, query }) {
   if (query) {
     return (
@@ -60,9 +67,11 @@ function PageMessage({ title, text, children }) {
 
 export default function CatalogPage() {
   const { category: slug } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q')?.trim() ?? '';
-  const requestKey = `${slug ?? ''}?${query}`;
+  const sortParam = searchParams.get('sort') ?? '';
+  const sort = SORT_OPTIONS.some((option) => option.value === sortParam) ? sortParam : '';
+  const requestKey = `${slug ?? ''}?${query}&${sort}`;
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [status, setStatus] = useState('loading');
@@ -78,7 +87,7 @@ export default function CatalogPage() {
   useEffect(() => {
     let stale = false;
     setStatus('loading');
-    const productRequest = productsApi.browse({ category: slug, q: query }).catch((err) => {
+    const productRequest = productsApi.browse({ category: slug, q: query, sort }).catch((err) => {
       if (err.status === 400 && slug) return { products: [] };
       throw err;
     });
@@ -97,12 +106,23 @@ export default function CatalogPage() {
     return () => {
       stale = true;
     };
-  }, [slug, query, attempt]);
+  }, [slug, query, sort, attempt]);
+
+  function handleSortChange(event) {
+    const next = new URLSearchParams(searchParams);
+    if (event.target.value) next.set('sort', event.target.value);
+    else next.delete('sort');
+    setSearchParams(next);
+  }
 
   const category = categories.find((item) => item.slug === slug);
   const unknownCategory = status === 'ready' && Boolean(slug) && !category;
-  const searchSuffix = query ? `?q=${encodeURIComponent(query)}` : '';
-  const clearSearchPath = slug ? `/shop/${slug}` : '/shop';
+  const keptParams = new URLSearchParams();
+  if (query) keptParams.set('q', query);
+  if (sort) keptParams.set('sort', sort);
+  const keptQuery = keptParams.toString();
+  const searchSuffix = keptQuery ? `?${keptQuery}` : '';
+  const clearSearchPath = `${slug ? `/shop/${slug}` : '/shop'}${sort ? `?sort=${sort}` : ''}`;
   let eyebrow = category ? 'Category' : 'Shop';
   if (query) eyebrow = 'Search';
 
@@ -128,10 +148,24 @@ export default function CatalogPage() {
             )}
             {!query && category && <p className="muted catalog-description">{category.description}</p>}
           </div>
-          {status === 'ready' && !unknownCategory && (
-            <p className="catalog-count">
-              {products.length} {products.length === 1 ? 'PRODUCT' : 'PRODUCTS'}
-            </p>
+          {!unknownCategory && (
+            <div className="catalog-tools">
+              {status === 'ready' && (
+                <p className="catalog-count">
+                  {products.length} {products.length === 1 ? 'PRODUCT' : 'PRODUCTS'}
+                </p>
+              )}
+              <label className="catalog-sort">
+                <span className="field-label">Sort by</span>
+                <select className="input" value={sort} onChange={handleSortChange}>
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           )}
         </div>
 
