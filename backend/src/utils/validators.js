@@ -66,6 +66,12 @@ export const productListQuerySchema = z.object({
     .max(80, { message: 'Invalid category' })
     .regex(/^[a-z0-9-]+$/, { message: 'Invalid category' })
     .optional(),
+  q: z
+    .string({ invalid_type_error: 'Invalid search' })
+    .trim()
+    .max(100, { message: 'Search must be at most 100 characters' })
+    .optional()
+    .transform((value) => value || undefined),
 });
 
 // ===== CART (Luis) =====
