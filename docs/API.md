@@ -80,6 +80,7 @@ No real bank is called, so use only these test cards, with any valid expiry and 
 
 The bank approves every valid number except those ending in `0002`.
 `bankService.charge({ cardNumber, amount })` in `backend/src/services/bank.service.js` returns `{ approved, reference }`.
+`reference` is `BNK-` plus 16 characters when approved and `null` when rejected. An `amount` of zero or less is never approved.
 
 `card` in the body of `POST /checkout` is `{ number, holderName, expiryMonth, expiryYear, cvv }`:
 
@@ -94,6 +95,7 @@ A wrong field gives 400 with `details`, where `field` is the name below:
 
 | `details[].field` | `message` |
 |---|---|
+| `card` | `Card details are required` (the body has no `card` object) |
 | `card.number` | `Card number is required`, `Enter a valid card number` |
 | `card.holderName` | `Name on card is required`, `Name on card must be 2 to 100 characters` |
 | `card.expiryMonth` | `Expiry month is required`, `Enter a valid expiry month`, `This card has expired` |
