@@ -7,20 +7,26 @@ import CartPage, { CartView } from '../src/pages/CartPage.jsx';
 import { buildCart, fakeCartItems } from '../src/pages/CartPage.fakeData.js';
 import { AuthProvider } from '../src/context/AuthContext.jsx';
 import { ToastProvider } from '../src/context/ToastContext.jsx';
-import { authApi } from '../src/api/endpoints.js';
+import { CartProvider } from '../src/context/CartContext.jsx';
+import { saveGuestItems } from '../src/utils/cartStorage.js';
+import { authApi, cartApi } from '../src/api/endpoints.js';
 import { tokenStore } from '../src/api/client.js';
 
 const routerFlags = { v7_startTransition: true, v7_relativeSplatPath: true };
 
-// The cart page with the real AuthProvider; no backend is needed.
+// The cart page with the real AuthProvider and CartProvider (SCRUM-71). The fake items are put
+// in the guest cart in localStorage, so no backend is needed.
 function renderCart() {
+  saveGuestItems(fakeCartItems);
   return render(
     <MemoryRouter initialEntries={['/cart']} future={routerFlags}>
       <ToastProvider>
         <AuthProvider>
-          <Routes>
-            <Route path="/cart" element={<CartPage />} />
-          </Routes>
+          <CartProvider>
+            <Routes>
+              <Route path="/cart" element={<CartPage />} />
+            </Routes>
+          </CartProvider>
         </AuthProvider>
       </ToastProvider>
     </MemoryRouter>
@@ -47,18 +53,18 @@ describe('buildCart', () => {
 });
 
 describe('CartPage', () => {
-  it('has a /cart route', () => {
+  it('has a /cart route (an empty cart without a CartProvider)', () => {
     render(
       <MemoryRouter initialEntries={['/cart']} future={routerFlags}>
         <App />
       </MemoryRouter>
     );
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Ready to brew?');
+    expect(screen.getByRole('heading', { name: 'Your cart is empty' })).toBeInTheDocument();
   });
 
-  it('shows each item with model, unit price and line total, and the summary', () => {
+  it('shows each item with model, unit price and line total, and the summary', async () => {
     renderCart();
-    const grinder = row('Zassenhaus Manaos Hand Grinder');
+    const grinder = (await screen.findByRole('link', { name: 'Zassenhaus Manaos Hand Grinder' })).closest('li');
     expect(within(grinder).getByText('Manaos')).toBeInTheDocument();
     expect(within(grinder).getByText('₺4,199.00 each')).toBeInTheDocument();
     expect(within(grinder).getByText('₺8,398.00')).toBeInTheDocument();
@@ -74,7 +80,7 @@ describe('CartPage', () => {
   it('updates the line total and subtotal when the quantity changes, up to the stock', async () => {
     const user = userEvent.setup();
     renderCart();
-    const machine = row('Sage The Barista Express Impress');
+    const machine = (await screen.findByRole('link', { name: 'Sage The Barista Express Impress' })).closest('li');
     const plus = within(machine).getByRole('button', { name: 'Increase quantity' });
     await user.click(plus);
     expect(within(machine).getByText('₺199,998.00')).toBeInTheDocument();
@@ -87,7 +93,7 @@ describe('CartPage', () => {
   it('removes an item with a toast, and shows the empty cart after the last one', async () => {
     const user = userEvent.setup();
     renderCart();
-    await user.click(screen.getByRole('button', { name: 'Remove Bialetti Thermos 750 ml Grey' }));
+    await user.click(await screen.findByRole('button', { name: 'Remove Bialetti Thermos 750 ml Grey' }));
     expect(screen.queryByRole('link', { name: 'Bialetti Thermos 750 ml Grey' })).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Bialetti Thermos 750 ml Grey was removed');
     expect(within(summary()).getByText('3')).toBeInTheDocument();
@@ -97,15 +103,17 @@ describe('CartPage', () => {
     expect(screen.getByRole('link', { name: 'Back to shop' })).toHaveAttribute('href', '/shop');
   });
 
-  it('asks a guest to log in to check out', () => {
+  it('asks a guest to log in to check out', async () => {
     renderCart();
-    expect(screen.getByRole('link', { name: /log in to check out/i })).toHaveAttribute('href', '/checkout');
+    expect(await screen.findByRole('link', { name: /log in to check out/i })).toHaveAttribute('href', '/checkout');
     expect(screen.getByText(/shopping as a guest/i)).toBeInTheDocument();
   });
 
   it('lets a logged-in customer go to checkout', async () => {
     tokenStore.set('saved-token');
     vi.spyOn(authApi, 'me').mockResolvedValueOnce({ user: { id: 1, name: 'Demo Customer', role: 'CUSTOMER' } });
+    // Logged in, the guest cart is merged into the saved cart on the server.
+    vi.spyOn(cartApi, 'merge').mockResolvedValueOnce({ cart: buildCart(fakeCartItems) });
     renderCart();
     expect(await screen.findByRole('link', { name: /go to checkout/i })).toHaveAttribute('href', '/checkout');
     expect(screen.queryByText(/shopping as a guest/i)).not.toBeInTheDocument();

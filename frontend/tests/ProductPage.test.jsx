@@ -110,7 +110,7 @@ describe('ProductPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Increase quantity' }));
     expect(addButton()).toBeEnabled();
     await user.click(addButton());
-    expect(screen.getByRole('status')).toHaveTextContent(`Added 2 × ${product.name} to your cart`);
+    expect(await screen.findByRole('status')).toHaveTextContent(`Added 2 × ${product.name} to your cart`);
   });
 
   it('disables Add to cart when the stock is 0 and says it can still be found in search', async () => {
