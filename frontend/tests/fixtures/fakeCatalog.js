@@ -100,6 +100,16 @@ export const productsApi = {
   list: async (category) => ({
     products: category ? products.filter((product) => product.category.slug === category) : products,
   }),
+  browse: async ({ category, q } = {}) => {
+    const term = q?.toLowerCase();
+    return {
+      products: products.filter(
+        (product) =>
+          (!category || product.category.slug === category) &&
+          (!term || product.name.toLowerCase().includes(term) || product.description.toLowerCase().includes(term))
+      ),
+    };
+  },
 };
 
 export const categoriesApi = {
