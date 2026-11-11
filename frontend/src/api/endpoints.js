@@ -34,6 +34,15 @@ export const categoriesApi = {
 };
 
 // ===== CART: cartApi (Luis, Sezin) =====
+// SCRUM-71 (Neslihan): Luis's cart routes (SCRUM-33, docs/API.md). Every call answers { cart }.
+export const cartApi = {
+  get: () => api('/cart'),
+  addItem: (productId, quantity) => api('/cart/items', { method: 'POST', body: { productId, quantity } }),
+  updateItem: (productId, quantity) =>
+    api(`/cart/items/${encodeURIComponent(productId)}`, { method: 'PATCH', body: { quantity } }),
+  removeItem: (productId) => api(`/cart/items/${encodeURIComponent(productId)}`, { method: 'DELETE' }),
+  merge: (items) => api('/cart/merge', { method: 'POST', body: { items } }),
+};
 
 // ===== ORDERS: ordersApi, checkoutApi (Luis, Ulukan, Sidar) =====
 
