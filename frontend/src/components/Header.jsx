@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import './Header.css';
@@ -18,6 +18,8 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const inAdmin = pathname === '/admin' || pathname.startsWith('/admin/');
 
   function handleSearch(event) {
     event.preventDefault();
@@ -53,7 +55,11 @@ export default function Header() {
             </NavLink>
           )}
           {adminPath && (
-            <NavLink to={adminPath} className="site-nav-link" onClick={closeMenu}>
+            <NavLink
+              to={adminPath}
+              className={({ isActive }) => `site-nav-link${isActive || inAdmin ? ' active' : ''}`}
+              onClick={closeMenu}
+            >
               Admin
             </NavLink>
           )}
