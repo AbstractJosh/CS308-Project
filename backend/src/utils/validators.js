@@ -66,6 +66,17 @@ export const productListQuerySchema = z.object({
     .max(80, { message: 'Invalid category' })
     .regex(/^[a-z0-9-]+$/, { message: 'Invalid category' })
     .optional(),
+  q: z
+    .string({ invalid_type_error: 'Invalid search' })
+    .trim()
+    .max(100, { message: 'Search must be at most 100 characters' })
+    .optional()
+    .transform((value) => value || undefined),
+  sort: z
+    .enum(['price_asc', 'price_desc', 'popularity', 'newest'], {
+      errorMap: () => ({ message: 'Sort must be price_asc, price_desc, popularity or newest' }),
+    })
+    .optional(),
 });
 
 // ===== CART (Luis) =====
@@ -110,5 +121,64 @@ export const cartMergeSchema = z.object({
 });
 
 // ===== ORDERS (Luis, Ulukan) =====
+// SCRUM-44 (Ulukan): the card of POST /checkout, with the rules and messages of docs/API.md
+// "Fake bank rules". The checkout schema uses it as `card: cardSchema`, so the fields in
+// details come out as `card.number`, `card.cvv` and so on.
+// The import stays inside this block (shared file: lines are only added in your own block);
+// JavaScript reads imports first wherever they are written.
+import { cardDigits, isCardExpired, isValidCardNumber } from './cardUtils.js';
+
+// A text field of the card: missing or empty gives `required`, a failed check gives `invalid`.
+// One function, so a field never gets two messages. `clean` runs before the check.
+const cardText = (required, invalid, clean, isValid) =>
+  z
+    .string({ required_error: required, invalid_type_error: invalid })
+    .transform(clean)
+    .superRefine((value, ctx) => {
+      if (!value) ctx.addIssue({ code: z.ZodIssueCode.custom, message: required });
+      else if (!isValid(value)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: invalid });
+    });
+
+// A whole number from min to max. Not coerced, so "11" in a JSON body is refused.
+const cardWholeNumber = (required, invalid, min, max) =>
+  z
+    .number({ required_error: required, invalid_type_error: invalid })
+    .refine((value) => Number.isInteger(value) && value >= min && value <= max, { message: invalid });
+
+const cardExpiryMonth = cardWholeNumber('Expiry month is required', 'Enter a valid expiry month', 1, 12);
+const cardExpiryYear = cardWholeNumber('Expiry year is required', 'Enter a valid expiry year', 1000, 9999);
+
+export const cardSchema = z
+  .object(
+    {
+      // Spaces are removed, so the service gets the digits only.
+      number: cardText('Card number is required', 'Enter a valid card number', cardDigits, isValidCardNumber),
+      holderName: cardText(
+        'Name on card is required',
+        'Name on card must be 2 to 100 characters',
+        (name) => name.trim(),
+        (name) => name.length >= 2 && name.length <= 100,
+      ),
+      expiryMonth: cardExpiryMonth,
+      expiryYear: cardExpiryYear,
+      // Text, not a number, so a leading zero is kept. It is checked here and never saved.
+      cvv: cardText(
+        'CVV is required',
+        'CVV must be 3 or 4 digits',
+        (cvv) => cvv,
+        (cvv) => /^\d{3,4}$/.test(cvv),
+      ),
+    },
+    { required_error: 'Card details are required', invalid_type_error: 'Card details are required' },
+  )
+  // Expiry needs the month and the year together. Only checked when both are valid on their own,
+  // so a month like 0 gets "Enter a valid expiry month" and not "This card has expired" as well.
+  .superRefine((card, ctx) => {
+    const bothValid =
+      cardExpiryMonth.safeParse(card.expiryMonth).success && cardExpiryYear.safeParse(card.expiryYear).success;
+    if (bothValid && isCardExpired(card.expiryMonth, card.expiryYear)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['expiryMonth'], message: 'This card has expired' });
+    }
+  });
 
 // ===== ADMIN (Neslihan, Murat, Sidar) =====

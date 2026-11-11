@@ -37,10 +37,14 @@ section, never rewrite or delete other people's lines.
 | GET /categories | - | - | 200 `{ categories }` | - |
 | GET /products | - | query `category` (slug, optional) | 200 `{ products }` | 400 (bad category) |
 | GET /products/:id | - | - | 200 `{ product }` | 400 (bad id), 404 |
+| GET /products?q= | - | query `q` (search, optional, up to 100 characters), works with `category` | 200 `{ products }` | 400 (search too long) |
+| GET /products?sort= | - | query `sort`: `price_asc`, `price_desc`, `popularity` or `newest` (optional), works with `category` and `q` | 200 `{ products }` | 400 (bad sort) |
 
 `category` is `{ id, name, slug, description, productCount }` (productCount counts active products only).
 `product` is `{ id, name, model, serialNumber, description, quantityInStock, price, warrantyStatus, distributor, imageCount, popularity, categoryId, createdAt, updatedAt, inStock, category: { id, name, slug } }`, never `cost` or `isActive`.
 Only active products are returned; out-of-stock products are still listed with `inStock: false`. An unknown category slug gives `{ "products": [] }`. Products come in id order.
+Search (`q`) matches the name or the description, without caring about upper or lower case. `%`, `_` and `\` in the term are searched as plain characters. A blank `q` is ignored. Out-of-stock products are found too, with `inStock: false`.
+Sort: `popularity` and `newest` put the highest first. Products with the same price or popularity stay in id order, so the order never jumps between requests. Without `sort` products come in id order.
 
 ## Cart (Luis)
 
@@ -80,6 +84,7 @@ No real bank is called, so use only these test cards, with any valid expiry and 
 
 The bank approves every valid number except those ending in `0002`.
 `bankService.charge({ cardNumber, amount })` in `backend/src/services/bank.service.js` returns `{ approved, reference }`.
+`reference` is `BNK-` plus 16 characters when approved and `null` when rejected. An `amount` of zero or less is never approved.
 
 `card` in the body of `POST /checkout` is `{ number, holderName, expiryMonth, expiryYear, cvv }`:
 
@@ -94,6 +99,7 @@ A wrong field gives 400 with `details`, where `field` is the name below:
 
 | `details[].field` | `message` |
 |---|---|
+| `card` | `Card details are required` (the body has no `card` object) |
 | `card.number` | `Card number is required`, `Enter a valid card number` |
 | `card.holderName` | `Name on card is required`, `Name on card must be 2 to 100 characters` |
 | `card.expiryMonth` | `Expiry month is required`, `Enter a valid expiry month`, `This card has expired` |

@@ -23,6 +23,10 @@ export const productsApi = {
   list: (category) =>
     api(category ? `/products?category=${encodeURIComponent(category)}` : '/products', { auth: false }),
   get: (id) => api(`/products/${encodeURIComponent(id)}`, { auth: false }),
+  browse: (filters = {}) => {
+    const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value)).toString();
+    return api(query ? `/products?${query}` : '/products', { auth: false });
+  },
 };
 
 export const categoriesApi = {
