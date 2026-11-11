@@ -20,6 +20,8 @@ import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import CartPage from './pages/CartPage.jsx';
+import OrderHistoryPage from './pages/OrderHistoryPage.jsx';
+import OrderDetailPage from './pages/OrderDetailPage.jsx';
 
 // ----- imports: ADMIN (Neslihan: layout; page owners add their admin page imports here) -----
 import RoleRoute from './components/RoleRoute.jsx';
@@ -53,6 +55,22 @@ export default function App() {
             }
           />
           <Route path="/cart" element={<CartPage />} />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <ProtectedRoute>
+                <OrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* ===== ADMIN: only product and sales managers (SCRUM-56) ===== */}
           <Route
