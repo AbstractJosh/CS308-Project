@@ -29,9 +29,9 @@ describe('CatalogPage search', () => {
 
   it('shows the results with the search term in the title', async () => {
     renderAt('/shop?q=grinder');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Search results' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Clear search' })).toHaveAttribute('href', '/shop');
+    expect(screen.getByRole('heading', { level: 1, name: 'Search results' })).toBeInTheDocument();
     expect(screen.getByText(/Results for “grinder”/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Clear search' })).toHaveAttribute('href', '/shop');
   });
 
   it('keeps sold out products in the results with the Sold out label', async () => {
