@@ -126,8 +126,13 @@ const DEMO_TAX_ID = '1234567890';
 const DEMO_ADDRESS = 'Sabancı University, Orta Mahalle, Tuzla, İstanbul';
 
 export async function seed(knex) {
-  // Children first, because they point to the tables after them.
-  // From Sprint 2, delete invoices, payments, deliveries, order_items and orders here first.
+  // Children first, because they point to the tables after them (handbook 6.4).
+  // Orders point to products, so the Sprint 2 tables are emptied before the catalog.
+  await knex('invoices').del();
+  await knex('payments').del();
+  await knex('deliveries').del();
+  await knex('order_items').del();
+  await knex('orders').del();
   await knex('cart_items').del();
   await knex('carts').del();
   await knex('products').del();
