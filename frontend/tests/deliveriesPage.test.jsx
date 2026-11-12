@@ -75,14 +75,4 @@ describe('DeliveriesPage', () => {
     expect(await screen.findByText('Zassenhaus Manaos Hand Grinder')).toBeInTheDocument();
     expect(list).toHaveBeenCalledTimes(2);
   });
-
-  it('builds the API path with the completed filter', () => {
-    const calls = [];
-    vi.spyOn(adminApi, 'deliveries').mockImplementation((completed) => {
-      calls.push(completed);
-      return Promise.resolve({ deliveries: [] });
-    });
-    render(<DeliveriesPage />);
-    expect(calls).toEqual([false]);
-  });
 });

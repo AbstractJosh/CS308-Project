@@ -183,7 +183,7 @@ export const cardSchema = z
 
 // ===== ADMIN (Neslihan, Murat, Sidar) =====
 
-// ===== ADMIN: delivery list (Neslihan, SCRUM-57) =====
+// Delivery list (Neslihan, SCRUM-57)
 // GET /admin/deliveries?completed=true|false (handbook 8.3). Without it, every delivery.
 export const deliveryListQuerySchema = z.object({
   completed: z
