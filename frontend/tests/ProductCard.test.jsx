@@ -52,10 +52,10 @@ describe('ProductCard', () => {
     expect(screen.getByText('SOLD OUT')).toBeInTheDocument();
   });
 
-  it('shows a message when the add button is clicked', async () => {
+  it('adds one to the cart with a toast when the add button is clicked', async () => {
     const user = userEvent.setup();
     renderCard();
     await user.click(screen.getByRole('button', { name: `Add ${product.name} to cart` }));
-    expect(screen.getByRole('status')).toHaveTextContent('The cart is coming soon');
+    expect(await screen.findByRole('status')).toHaveTextContent(`Added 1 × ${product.name} to your cart`);
   });
 });

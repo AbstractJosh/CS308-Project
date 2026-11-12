@@ -116,3 +116,10 @@ Only the last 4 digits and a salted hash of the number are saved, never the full
 
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
+| `GET /admin/deliveries` | product manager | query `completed=true\|false` (optional) | 200 `{ deliveries: [{ id, orderId, customerId, productId, productName, quantity, totalPrice, deliveryAddress, completed, orderStatus }] }` | 400 (bad `completed`), 401, 403 |
+
+### Delivery list (Neslihan, SCRUM-57)
+
+One delivery row per order item, written when the order is placed (SCRUM-35). Open deliveries (`completed: false`) come first, then the newest first.
+`totalPrice` is the line total the customer paid. `orderStatus` is the order's status (`PROCESSING`, `IN_TRANSIT`, `DELIVERED`, `CANCELLED`).
+`completed` becomes `true` when the product manager moves the order to `DELIVERED` (`PATCH /admin/orders/:id/status`, SCRUM-60).

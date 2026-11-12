@@ -4,7 +4,7 @@ import { ShoppingBag } from 'lucide-react';
 import ProductBadge from '../components/ProductBadge.jsx';
 import QuantityStepper, { clampQuantity } from '../components/QuantityStepper.jsx';
 import { productsApi } from '../api/endpoints.js';
-import { useToast } from '../context/ToastContext.jsx';
+import { useAddToCart } from '../hooks/useAddToCart.js';
 import { formatPrice, stockLabel } from '../utils/format.js';
 import { productImage } from '../utils/images.js';
 import './ProductPage.css';
@@ -83,7 +83,7 @@ function PageMessage({ title, text, children }) {
 }
 
 function ProductDetails({ product }) {
-  const { notify } = useToast();
+  const addToCart = useAddToCart();
   const [photo, setPhoto] = useState(1);
   const [quantity, setQuantity] = useState(1);
 
@@ -94,8 +94,8 @@ function ProductDetails({ product }) {
   function handleAddToCart() {
     if (soldOut) return;
     const qty = clampQuantity(quantity, product.quantityInStock);
-    // TODO(Sprint 2): call addItem(product, qty) from useCart() when CartContext exists.
-    notify(`Added ${qty} × ${product.name} to your cart`);
+    // SCRUM-71: adds to the real cart and shows the toast (or the stock error).
+    addToCart(product, qty);
   }
 
   return (
