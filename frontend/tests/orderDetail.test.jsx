@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import OrderDetailPage from '../src/pages/OrderDetailPage.jsx';
 import { fakeOrdersApi } from '../src/pages/OrderHistoryPage.fakeData.js';
+import { ordersApi } from '../src/api/endpoints.js';
 
 function renderAt(path) {
   return render(
@@ -15,6 +16,10 @@ function renderAt(path) {
 }
 
 describe('OrderDetailPage', () => {
+  beforeEach(() => {
+    vi.spyOn(ordersApi, 'get').mockImplementation((id) => fakeOrdersApi.get(id));
+  });
+
   afterEach(() => vi.restoreAllMocks());
 
   it('shows the items with the prices paid and line totals', async () => {
@@ -55,7 +60,7 @@ describe('OrderDetailPage', () => {
   });
 
   it('shows other errors with a way to try again', async () => {
-    vi.spyOn(fakeOrdersApi, 'get').mockRejectedValueOnce(new Error('Cannot reach the server.'));
+    vi.spyOn(ordersApi, 'get').mockRejectedValueOnce(new Error('Cannot reach the server.'));
     renderAt('/orders/14');
     expect(await screen.findByText('Cannot reach the server.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
