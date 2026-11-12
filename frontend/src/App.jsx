@@ -29,6 +29,7 @@ import AdminLayout from './pages/admin/AdminLayout.jsx';
 import AdminHome from './pages/admin/AdminHome.jsx';
 import AdminComingSoon from './pages/admin/AdminComingSoon.jsx';
 import { ADMIN_ROLES } from './pages/admin/adminMenu.js';
+import DeliveriesPage from './pages/admin/DeliveriesPage.jsx';
 
 export default function App() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
           >
             <Route index element={<AdminHome />} />
             {/* Page owners add theirs here, e.g. <Route path="deliveries" element={<DeliveriesPage />} /> */}
+            <Route path="deliveries" element={<DeliveriesPage />} />
             <Route path="*" element={<AdminComingSoon />} />
           </Route>
 

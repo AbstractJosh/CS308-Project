@@ -70,7 +70,8 @@ describe('admin area', () => {
     await waitFor(() => expect(screen.getByTestId('address')).toHaveTextContent(/^\/admin\/deliveries$/));
     const links = screen.getAllByRole('link').filter((link) => link.className.includes('admin-menu-link'));
     expect(links.map((link) => link.textContent)).toEqual(['Deliveries', 'Products', 'Stock', 'Comments', 'Invoices']);
-    expect(await screen.findByText('This page is built in Sprint 2.')).toBeInTheDocument();
+    // Deliveries is a real page since SCRUM-57.
+    expect(await screen.findByRole('heading', { name: 'Delivery list' })).toBeInTheDocument();
   });
 
   it('shows the sales manager their own pages', async () => {

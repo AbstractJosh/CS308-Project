@@ -31,6 +31,10 @@ import {
 // ----- imports: ORDERS (Luis, Ulukan) -----
 
 // ----- imports: ADMIN (Neslihan, Murat, Sidar) -----
+// Uses requireAuth and validate from the AUTH block above.
+import { requireRole } from '../middleware/auth.js';
+import * as deliveriesController from '../controllers/deliveries.controller.js';
+import { deliveryListQuerySchema } from '../utils/validators.js';
 
 const router = Router();
 
@@ -70,5 +74,13 @@ router.post('/cart/merge', requireAuth, validate(cartMergeSchema), cartControlle
 // ===== ORDERS (Luis, Ulukan) =====
 
 // ===== ADMIN (Neslihan, Murat, Sidar) =====
+// Delivery list for the product manager (Neslihan, SCRUM-57, req 12).
+router.get(
+  '/admin/deliveries',
+  requireAuth,
+  requireRole('PRODUCT_MANAGER'),
+  validate(deliveryListQuerySchema, 'query'),
+  deliveriesController.list,
+);
 
 export default router;
