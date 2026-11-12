@@ -39,6 +39,22 @@ Tests: `npm test` in `backend` and in `frontend`. They do not need a database.
 | Port already in use | Close the other dev server. |
 | "Cannot reach the server" on the site | Start the backend. |
 
+## Email and invoice PDFs (Sprint 2)
+
+Invoice PDFs are made with PDFKit (`backend/src/utils/invoicePdf.js`) and emailed with
+Nodemailer (`backend/src/services/email.service.js`). These `.env` settings control email:
+
+| `.env` name | Value in development | Meaning |
+|---|---|---|
+| `SMTP_HOST` | empty | Email server. Empty means a free Ethereal test inbox is used. |
+| `SMTP_PORT` | empty | Server port (587 when empty; 465 uses TLS from the start). |
+| `SMTP_USER`, `SMTP_PASS` | empty | Login for the email server. |
+| `MAIL_FROM` | empty | Sender shown on emails (default `Crema & Co. <no-reply@crema.com>`). |
+
+With the SMTP values empty, nothing is really delivered: the backend console prints
+`Email preview: https://ethereal.email/message/...`; open that link to see the email and its PDF.
+Ethereal needs an internet connection.
+
 ## Team
 
 | Name | Main area |
