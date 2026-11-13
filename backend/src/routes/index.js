@@ -30,6 +30,10 @@ import {
 
 // ----- imports: ORDERS (Luis, Ulukan) -----
 
+// ----- imports: INVOICES (Murat) -----
+// Uses requireAuth and validate from the AUTH block and idParamSchema from the CATALOG block.
+import * as invoicesController from '../controllers/invoices.controller.js';
+
 // ----- imports: ADMIN (Neslihan, Murat, Sidar) -----
 // Uses requireAuth and validate from the AUTH block above.
 import { requireRole } from '../middleware/auth.js';
@@ -72,6 +76,10 @@ router.delete('/cart', requireAuth, cartController.clear);
 router.post('/cart/merge', requireAuth, validate(cartMergeSchema), cartController.merge);
 
 // ===== ORDERS (Luis, Ulukan) =====
+
+// ===== INVOICES (Murat) =====
+// The invoice PDF: the order's customer, product managers and sales managers only (SCRUM-49, req 4).
+router.get('/invoices/:id/pdf', requireAuth, validate(idParamSchema, 'params'), invoicesController.pdf);
 
 // ===== ADMIN (Neslihan, Murat, Sidar) =====
 // Delivery list for the product manager (Neslihan, SCRUM-57, req 12).

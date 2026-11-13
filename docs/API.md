@@ -112,6 +112,19 @@ Checks run in this order: card fields (400), empty cart (400 `Your cart is empty
 
 Only the last 4 digits and a salted hash of the number are saved, never the full number or the CVV.
 
+## Invoices (Murat)
+
+| Method and path | Auth | Request | Success | Errors |
+|---|---|---|---|---|
+| `GET /invoices/:id/pdf` | the order's customer, product manager, sales manager | - | 200 `application/pdf` (`Content-Disposition: inline; filename="INV-000123.pdf"`) | 400 (bad id), 401, 403, 404 `Invoice not found` |
+
+The checkout writes one invoice per order, numbered `INV-` plus the order id padded to 6 digits (order 123 is `INV-000123`).
+`POST /checkout` answers with `invoice: { id, invoiceNumber }`; use that `id` here.
+The PDF shows the invoice number, date, customer name, email and tax ID, delivery address, every item with quantity, unit price and line total, and the total (handbook 7.6). Only the last 4 card digits are printed.
+Any other customer gets 403, even for an invoice that exists.
+
+The frontend opens it with the login token, for example `fetch('/api/invoices/7/pdf', { headers: { Authorization: 'Bearer ' + token } })`, then shows the blob in a new tab. A plain link cannot send the token.
+
 ## Admin (Neslihan, Murat, Sidar)
 
 | Method and path | Auth | Request | Success | Errors |
