@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import OrderStatusPill from '../components/OrderStatusPill.jsx';
 import { formatPrice } from '../utils/format.js';
 import { formatOrderDate } from '../utils/orderDates.js';
-import { fakeOrdersApi } from './OrderHistoryPage.fakeData.js';
+import { ordersApi } from '../api/endpoints.js';
 import './OrderDetailPage.css';
 
 function BackLink() {
@@ -42,7 +42,7 @@ export default function OrderDetailPage() {
   useEffect(() => {
     let stale = false;
     setStatus('loading');
-    fakeOrdersApi
+    ordersApi
       .get(id)
       .then((data) => {
         if (stale) return;

@@ -71,6 +71,13 @@ Guests keep their cart in `localStorage` (`crema_guest_cart`); these routes are 
 
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
+| GET /orders | user | - | 200 `{ orders }` newest first | 401 |
+| GET /orders/:id | the order's customer, sales manager, product manager, support agent | - | 200 `{ order }` | 400 (bad id), 401, 403, 404 `Order not found` |
+
+`order` is the Order object of handbook 8.1: `{ id, status, total, deliveryAddress, cardLast4, createdAt, deliveredAt, items: [{ id, productId, name, model, quantity, unitPrice }] }`. `total` and `unitPrice` are numbers; `unitPrice` is the price paid at checkout, not today's price. `deliveredAt` is `null` until the order is delivered.
+
+- GET /orders gives only the logged-in user's own orders (staff too), each with its items. No orders: `{ "orders": [] }`. Orders with the same `createdAt` put the higher id first.
+- GET /orders/:id: any other customer gets 403, even for an order that exists.
 
 ### Fake bank rules (Ulukan)
 

@@ -156,3 +156,81 @@ describe('CheckoutPage', () => {
     expect(screen.getByRole('link', { name: 'Back to cart' })).toHaveAttribute('href', '/cart');
   });
 });
+
+// Bugs found by Ulukan while reviewing PR #36 (Jira SCRUM-107 to SCRUM-111).
+describe('checkout bugs from the PR #36 review', () => {
+  it('SCRUM-107: locks "Change" and the card fields while the payment is sending', async () => {
+    let answer;
+    fakeCheckout.mockReturnValueOnce(new Promise((resolve) => { answer = resolve; }));
+    const user = userEvent.setup();
+    renderCheckout();
+    await goToPayment(user);
+    await fillCard(user);
+    await user.click(payButton());
+
+    expect(screen.getByRole('button', { name: /paying/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Change' })).toBeDisabled();
+    expect(screen.getByLabelText('Card number')).toBeDisabled();
+
+    answer({ order: { id: 1001, total: 108397, cardLast4: '4242' }, invoice: { id: 1001, invoiceNumber: 'INV-001001' }, emailSent: true });
+    expect(await screen.findByText('Thank you, your order is placed')).toBeInTheDocument();
+  });
+
+  it('SCRUM-108: empties the cart after a successful payment', async () => {
+    fakeCheckout.mockResolvedValueOnce({
+      order: { id: 1001, total: 108397, cardLast4: '4242' },
+      invoice: { id: 1001, invoiceNumber: 'INV-001001' },
+      emailSent: true,
+    });
+    const remove = vi.spyOn(cartApi, 'removeItem').mockResolvedValue({ cart: buildCart([]) });
+    const user = userEvent.setup();
+    renderCheckout();
+    await goToPayment(user);
+    await fillCard(user);
+    await user.click(payButton());
+
+    expect(await screen.findByText('Thank you, your order is placed')).toBeInTheDocument();
+    await vi.waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
+    expect(remove).toHaveBeenCalledWith(3);
+    expect(remove).toHaveBeenCalledWith(40);
+  });
+
+  it('SCRUM-109: goes back to the address step and shows it when the server rejects the address', async () => {
+    const details = [{ field: 'deliveryAddress', message: 'Delivery address must be 10 to 300 characters' }];
+    fakeCheckout.mockRejectedValueOnce(Object.assign(new Error(details[0].message), { status: 400, details }));
+    const user = userEvent.setup();
+    renderCheckout();
+    await goToPayment(user);
+    await fillCard(user);
+    await user.click(payButton());
+
+    expect(await screen.findByText('Delivery address must be 10 to 300 characters')).toBeInTheDocument();
+    expect(screen.getByLabelText('Deliver to')).toHaveAttribute('aria-invalid', 'true');
+    // The message goes away once the address is edited.
+    await user.type(screen.getByLabelText('Deliver to'), ', Turkey');
+    expect(screen.queryByText('Delivery address must be 10 to 300 characters')).not.toBeInTheDocument();
+  });
+
+  it('SCRUM-110: after a rejected card, does not shout "CVV is required" and keeps the bank message while typing', async () => {
+    fakeCheckout.mockRejectedValueOnce(Object.assign(new Error('Payment was rejected by the bank'), { status: 402 }));
+    const user = userEvent.setup();
+    renderCheckout();
+    await goToPayment(user);
+    await fillCard(user, { number: '4000 0000 0000 0002' });
+    await user.click(payButton());
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Payment was rejected by the bank');
+    expect(screen.queryByText('CVV is required')).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('CVV'), '1');
+    expect(screen.getByRole('alert')).toHaveTextContent('Payment was rejected by the bank');
+  });
+
+  it('SCRUM-111: reads a pasted MM/YYYY expiry as MM/YY', async () => {
+    const user = userEvent.setup();
+    renderCheckout();
+    await goToPayment(user);
+    await user.click(screen.getByLabelText('Expiry (MM/YY)'));
+    await user.paste('11/2029');
+    expect(screen.getByLabelText('Expiry (MM/YY)')).toHaveValue('11/29');
+  });
+});

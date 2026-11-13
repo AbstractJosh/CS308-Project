@@ -98,3 +98,20 @@ describe('checkoutServerErrors', () => {
     expect(checkoutServerErrors(down).form).toBe('Cannot reach the server. Is the backend running?');
   });
 });
+
+describe('formatExpiry with a 4-digit year (SCRUM-111)', () => {
+  it('turns pasted or autofilled dates into MM/YY', () => {
+    expect(formatExpiry('11/2029')).toBe('11/29');
+    expect(formatExpiry('1/2029')).toBe('01/29');
+    expect(formatExpiry('11-2029')).toBe('11/29');
+    expect(formatExpiry('2029-11')).toBe('11/29');
+    expect(formatExpiry('112029')).toBe('11/29');
+  });
+
+  it('still works while typing MM/YY by hand', () => {
+    expect(formatExpiry('1')).toBe('1');
+    expect(formatExpiry('112')).toBe('11/2');
+    expect(formatExpiry('11/29')).toBe('11/29');
+    expect(formatExpiry('11/295')).toBe('11/29');
+  });
+});
