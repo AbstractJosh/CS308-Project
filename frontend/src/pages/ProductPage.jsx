@@ -99,8 +99,8 @@ function ProductDetails({ product }) {
   }
 
   return (
-    <section className="container product-page">
-      <div className="product-layout">
+    <section className="product-page">
+      <div className="container product-layout">
         {/* ----- Left: photo gallery ----- */}
         <div className="product-gallery">
           <div className="photo-panel product-photo-main">

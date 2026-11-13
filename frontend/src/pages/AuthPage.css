@@ -1,6 +1,8 @@
 /* Shared styles of LoginPage and RegisterPage (SCRUM-20). Owner: Sezin.
    The two pages have the same layout, so they share this one file.
    Uses only the variables and classes from global.css. */
+/* .auth-page is not also a .container: global.css loads after this file, and its
+   .container { padding: 0 24px } would reset this padding-top to 0. */
 .auth-page {
   padding-top: 72px;
   padding-bottom: var(--section-gap);
