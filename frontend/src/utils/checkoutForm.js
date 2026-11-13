@@ -13,7 +13,17 @@ export function formatCardNumber(value) {
 }
 
 // "1129" -> "11/29" while typing; at most 4 digits.
+// A pasted or autofilled date with a 4-digit year becomes MM/YY too (SCRUM-111):
+// "11/2029", "1/2029", "11-2029", "112029" and "2029-11" all become "11/29".
 export function formatExpiry(value) {
+  const text = String(value ?? '').trim();
+  const monthFirst = /^(\d{1,2})\s*[/.-]?\s*(20\d{2})$/.exec(text);
+  const yearFirst = /^(20\d{2})\s*[/.-]\s*(\d{1,2})$/.exec(text);
+  const full = monthFirst ? [monthFirst[1], monthFirst[2]] : yearFirst ? [yearFirst[2], yearFirst[1]] : null;
+  if (full && Number(full[0]) >= 1 && Number(full[0]) <= 12) {
+    return `${full[0].padStart(2, '0')}/${full[1].slice(2)}`;
+  }
+
   const digits = onlyDigits(value).slice(0, 4);
   return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
 }
