@@ -80,6 +80,21 @@
   color: var(--champagne);
 }
 
+/* Groups the payment fields so they can all be locked while paying (SCRUM-107).
+   The browser draws a border around a fieldset by default; this removes it. */
+.checkout-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.checkout-fieldset:disabled .checkout-link {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 .checkout-panel textarea.input {
   resize: vertical;
   min-height: 104px;

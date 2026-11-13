@@ -23,12 +23,21 @@ const EMPTY_CARD = { holderName: '', number: '', expiry: '', cvv: '' };
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { cart, ready } = useCart();
+  const { cart, ready, removeItem } = useCart();
   const [step, setStep] = useState('address'); // 'address' -> 'payment' -> 'done'
   // null = not edited yet, so the home address is shown, even if the user loads a moment later.
   const [editedAddress, setEditedAddress] = useState(null);
   const address = editedAddress ?? user?.homeAddress ?? '';
+  // The server's message when it refuses the address (SCRUM-109); cleared when the address changes.
+  const [addressError, setAddressError] = useState('');
   const [result, setResult] = useState(null);
+
+  // SCRUM-108: the paid items must leave the cart. The real POST /checkout empties the cart on
+  // the server (handbook 7.4 step 6); with the fake payment the page removes them itself.
+  // TODO(SCRUM-54): with the real API, reload the cart from the server instead.
+  function emptyCart(paidItems) {
+    return Promise.allSettled(paidItems.map((item) => removeItem(item.productId)));
+  }
 
   if (!ready) return <PageMessage title="Loading your cart" text="One moment." />;
 
@@ -71,7 +80,11 @@ export default function CheckoutPage() {
             {step === 'address' ? (
               <AddressStep
                 address={address}
-                onChange={setEditedAddress}
+                serverError={addressError}
+                onChange={(value) => {
+                  setEditedAddress(value);
+                  setAddressError('');
+                }}
                 onContinue={() => setStep('payment')}
               />
             ) : (
@@ -79,9 +92,15 @@ export default function CheckoutPage() {
                 address={address}
                 cart={cart}
                 onChangeAddress={() => setStep('address')}
+                onAddressRejected={(message) => {
+                  setAddressError(message);
+                  setStep('address');
+                }}
                 onPaid={(answer) => {
+                  const paidItems = cart.items;
                   setResult(answer);
                   setStep('done');
+                  emptyCart(paidItems);
                 }}
               />
             )}
@@ -116,9 +135,11 @@ function Steps({ current }) {
 }
 
 // ---------- Step 1: delivery address ----------
-function AddressStep({ address, onChange, onContinue }) {
-  const [submitted, setSubmitted] = useState(false);
+function AddressStep({ address, serverError, onChange, onContinue }) {
+  // A rejected address comes back from the payment step already marked (SCRUM-109).
+  const [submitted, setSubmitted] = useState(Boolean(serverError));
   const errors = submitted ? validateAddress(address) : {};
+  if (!errors.deliveryAddress && serverError) errors.deliveryAddress = serverError;
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -150,7 +171,7 @@ function AddressStep({ address, onChange, onContinue }) {
 }
 
 // ---------- Step 2: card payment ----------
-function PaymentStep({ address, cart, onChangeAddress, onPaid }) {
+function PaymentStep({ address, cart, onChangeAddress, onAddressRejected, onPaid }) {
   const [card, setCard] = useState(EMPTY_CARD);
   const [submitted, setSubmitted] = useState(false);
   const [apiErrors, setApiErrors] = useState({ fields: {}, form: '' });
@@ -166,8 +187,10 @@ function PaymentStep({ address, cart, onChangeAddress, onPaid }) {
           : name === 'cvv' ? value.replace(/\D/g, '').slice(0, 4)
             : value;
     setCard((current) => ({ ...current, [name]: formatted }));
-    // Remove the server's message for this field (an "undefined" left behind would hide the form's).
-    setApiErrors(({ fields: { [name]: _old, ...otherFields } }) => ({ fields: otherFields, form: '' }));
+    // Remove the server's message for this field only (an "undefined" left behind would hide the
+    // form's). The message above the button, like the bank's "rejected", stays until the next
+    // try, so it does not vanish while the user types the CVV again (SCRUM-110).
+    setApiErrors(({ fields: { [name]: _old, ...otherFields }, form }) => ({ fields: otherFields, form }));
   }
 
   async function handleSubmit(event) {
@@ -175,20 +198,32 @@ function PaymentStep({ address, cart, onChangeAddress, onPaid }) {
     setSubmitted(true);
     if (Object.keys(validateCard(card)).length > 0) return;
 
+    setApiErrors({ fields: {}, form: '' });
     setSending(true);
     try {
       // TODO(SCRUM-54): send this body to the real POST /checkout instead of fakeCheckout.
       onPaid(await fakeCheckout(checkoutBody(address, card), cart));
     } catch (err) {
-      setApiErrors(checkoutServerErrors(err));
-      // After a refused payment the CVV is typed again, like on real shops.
+      const errors = checkoutServerErrors(err);
+      // SCRUM-109: the address is on the other step, so show the message there.
+      if (errors.fields.deliveryAddress) {
+        onAddressRejected(errors.fields.deliveryAddress);
+        return;
+      }
+      setApiErrors(errors);
+      // After a refused payment the CVV is typed again, like on real shops. The form starts
+      // "untouched" again, so the empty CVV is not marked as a mistake at once (SCRUM-110).
       setCard((current) => ({ ...current, cvv: '' }));
+      setSubmitted(false);
       setSending(false);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate>
+      {/* SCRUM-107: while the payment is on its way, nothing can be changed. Otherwise the
+          order could be placed with an address or card the user thinks they changed. */}
+      <fieldset className="checkout-fieldset" disabled={sending}>
       <div className="checkout-address-recap">
         <div>
           <p className="checkout-label">Deliver to</p>
@@ -246,6 +281,7 @@ function PaymentStep({ address, cart, onChangeAddress, onPaid }) {
       <p className="muted checkout-test-cards">
         Test cards: 4242 4242 4242 4242 is approved, 4000 0000 0000 0002 is rejected by the bank.
       </p>
+      </fieldset>
 
       {apiErrors.form && (
         <p className="field-error checkout-form-error" role="alert">
