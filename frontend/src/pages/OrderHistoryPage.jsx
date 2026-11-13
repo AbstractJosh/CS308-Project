@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import OrderStatusPill from '../components/OrderStatusPill.jsx';
 import { formatPrice } from '../utils/format.js';
 import { formatOrderDate } from '../utils/orderDates.js';
-import { fakeOrdersApi } from './OrderHistoryPage.fakeData.js';
+import { ordersApi } from '../api/endpoints.js';
 import './OrderHistoryPage.css';
 
 function PageMessage({ title, text, children }) {
@@ -32,7 +32,7 @@ export default function OrderHistoryPage() {
   useEffect(() => {
     let stale = false;
     setStatus('loading');
-    fakeOrdersApi
+    ordersApi
       .list()
       .then((data) => {
         if (stale) return;

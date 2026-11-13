@@ -45,6 +45,10 @@ export const cartApi = {
 };
 
 // ===== ORDERS: ordersApi, checkoutApi (Luis, Ulukan, Sidar) =====
+export const ordersApi = {
+  list: () => api('/orders'),
+  get: (id) => api(`/orders/${encodeURIComponent(id)}`),
+};
 
 // ===== ADMIN: adminApi (Neslihan, Murat, Sidar) =====
 // SCRUM-57 (Neslihan): delivery list for the product manager. completed: true, false or undefined (all).

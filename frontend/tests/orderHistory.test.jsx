@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import OrderHistoryPage from '../src/pages/OrderHistoryPage.jsx';
 import OrderDetailPage from '../src/pages/OrderDetailPage.jsx';
 import { fakeOrdersApi } from '../src/pages/OrderHistoryPage.fakeData.js';
+import { ordersApi } from '../src/api/endpoints.js';
 
 function renderAt(path) {
   return render(
@@ -18,6 +19,11 @@ function renderAt(path) {
 }
 
 describe('OrderHistoryPage', () => {
+  beforeEach(() => {
+    vi.spyOn(ordersApi, 'list').mockImplementation(() => fakeOrdersApi.list());
+    vi.spyOn(ordersApi, 'get').mockImplementation((id) => fakeOrdersApi.get(id));
+  });
+
   afterEach(() => vi.restoreAllMocks());
 
   it('lists the orders newest first', async () => {
@@ -45,7 +51,7 @@ describe('OrderHistoryPage', () => {
   });
 
   it('shows an empty state when there are no orders', async () => {
-    vi.spyOn(fakeOrdersApi, 'list').mockResolvedValueOnce({ orders: [] });
+    vi.spyOn(ordersApi, 'list').mockResolvedValueOnce({ orders: [] });
     renderAt('/orders');
     expect(await screen.findByText('No orders yet')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to shop' })).toHaveAttribute('href', '/shop');
@@ -53,7 +59,7 @@ describe('OrderHistoryPage', () => {
 
   it('shows the error and tries again', async () => {
     const user = userEvent.setup();
-    vi.spyOn(fakeOrdersApi, 'list').mockRejectedValueOnce(new Error('Cannot reach the server.'));
+    vi.spyOn(ordersApi, 'list').mockRejectedValueOnce(new Error('Cannot reach the server.'));
     renderAt('/orders');
     expect(await screen.findByText('Cannot reach the server.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Try again' }));
