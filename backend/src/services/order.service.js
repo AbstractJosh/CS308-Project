@@ -11,8 +11,15 @@
 // Whatever pay returns is passed on as `paid`. Throwing from a hook (for example the 402
 // "Payment was rejected by the bank") rolls everything back.
 import db from '../db/knex.js';
-import { badRequest, conflict, notFound } from '../utils/httpError.js';
-import { buildOrderLines, checkStock, orderTotal, toOrder } from '../utils/orderUtils.js';
+import { badRequest, conflict, forbidden, notFound } from '../utils/httpError.js';
+import {
+  buildOrderLines,
+  canViewOrder,
+  checkStock,
+  orderTotal,
+  toOrder,
+  toOrders,
+} from '../utils/orderUtils.js';
 
 // Locks the user's cart and the products in it, then checks the stock (handbook 7.4 steps 2-3).
 // Returns { cartId, lines, total }. Empty cart: 400. Not enough stock: 409.
@@ -100,12 +107,14 @@ async function writeOrder(trx, userId, { cartId, lines, total }, { deliveryAddre
   return order.id;
 }
 
+const ORDER_COLUMNS = ['id', 'status', 'total', 'delivery_address', 'card_last4', 'created_at', 'delivered_at'];
+
 // GET-style read of one order as the Order object of handbook 8.1. Pass trx to read inside
 // a transaction. Owner and staff checks belong to the route that calls this.
 export async function getOrder(orderId, trx = db) {
   const order = await trx('orders')
     .where({ id: orderId })
-    .first('id', 'status', 'total', 'delivery_address', 'card_last4', 'created_at', 'delivered_at');
+    .first(ORDER_COLUMNS);
   if (!order) throw notFound('Order not found');
 
   const items = await trx('order_items as oi')
@@ -126,4 +135,36 @@ export async function placeOrder(userId, { deliveryAddress, cardLast4 }, hooks =
     if (hooks.afterWrite) await hooks.afterWrite({ trx, orderId, total: prepared.total, paid });
     return { order: await getOrder(orderId, trx), paid };
   });
+}
+
+// GET /orders (SCRUM-105): the user's own orders, newest first, each as the Order object of
+// handbook 8.1. Two queries in all, not one per order. No orders: [].
+export async function listOrders(userId) {
+  const orders = await db('orders')
+    .where({ user_id: userId })
+    .orderBy([
+      { column: 'created_at', order: 'desc' },
+      { column: 'id', order: 'desc' }, // same timestamp: the later order first
+    ])
+    .select(ORDER_COLUMNS);
+  if (orders.length === 0) return [];
+
+  const items = await db('order_items as oi')
+    .join('products as p', 'p.id', 'oi.product_id')
+    .whereIn(
+      'oi.order_id',
+      orders.map((order) => order.id),
+    )
+    .orderBy('oi.id', 'asc')
+    .select('oi.id', 'oi.order_id', 'oi.product_id', 'p.name', 'p.model', 'oi.quantity', 'oi.unit_price');
+  return toOrders(orders, items);
+}
+
+// GET /orders/:id (SCRUM-105): one order for its customer or staff.
+// Unknown id: 404 "Order not found". Another customer's order: 403.
+export async function getOrderForUser(orderId, user) {
+  const row = await db('orders').where({ id: orderId }).first('user_id');
+  if (!row) throw notFound('Order not found');
+  if (!canViewOrder(user, row.userId)) throw forbidden();
+  return getOrder(orderId);
 }

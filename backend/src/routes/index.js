@@ -29,6 +29,8 @@ import {
 } from '../utils/validators.js';
 
 // ----- imports: ORDERS (Luis, Ulukan) -----
+// Uses requireAuth and validate from the AUTH block and idParamSchema from the CATALOG block.
+import * as ordersController from '../controllers/orders.controller.js';
 
 // ----- imports: INVOICES (Murat) -----
 // Uses requireAuth and validate from the AUTH block and idParamSchema from the CATALOG block.
@@ -76,6 +78,9 @@ router.delete('/cart', requireAuth, cartController.clear);
 router.post('/cart/merge', requireAuth, validate(cartMergeSchema), cartController.merge);
 
 // ===== ORDERS (Luis, Ulukan) =====
+// Order history (SCRUM-105): the user's own orders; one order for its customer or staff.
+router.get('/orders', requireAuth, ordersController.list);
+router.get('/orders/:id', requireAuth, validate(idParamSchema, 'params'), ordersController.getById);
 
 // ===== INVOICES (Murat) =====
 // The invoice PDF: the order's customer, product managers and sales managers only (SCRUM-49, req 4).

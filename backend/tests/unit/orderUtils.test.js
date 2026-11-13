@@ -2,11 +2,14 @@
 import { describe, it, expect } from 'vitest';
 import { HttpError } from '../../src/utils/httpError.js';
 import {
+  ORDER_STAFF_ROLES,
   buildOrderLines,
+  canViewOrder,
   checkStock,
   orderTotal,
   roundMoney,
   toOrder,
+  toOrders,
   unitCostFor,
 } from '../../src/utils/orderUtils.js';
 
@@ -179,5 +182,51 @@ describe('toOrder', () => {
       deliveredAt: null,
       items: [{ id: 30, productId: 2, name: 'Baratza Encore', model: 'ESP', quantity: 1, unitPrice: 7499.9 }],
     });
+  });
+});
+
+describe('canViewOrder (SCRUM-105)', () => {
+  it('lets the customer who placed the order see it, even if the token id is a string', () => {
+    expect(canViewOrder({ id: 4, role: 'CUSTOMER' }, 4)).toBe(true);
+    expect(canViewOrder({ id: '4', role: 'CUSTOMER' }, 4)).toBe(true);
+  });
+
+  it('refuses another customer and a missing user', () => {
+    expect(canViewOrder({ id: 5, role: 'CUSTOMER' }, 4)).toBe(false);
+    expect(canViewOrder(undefined, 4)).toBe(false);
+  });
+
+  it.each(ORDER_STAFF_ROLES)('lets a %s see any order', (role) => {
+    expect(canViewOrder({ id: 99, role }, 4)).toBe(true);
+  });
+
+  it('counts every role except CUSTOMER as staff', () => {
+    expect(ORDER_STAFF_ROLES).toEqual(['SALES_MANAGER', 'PRODUCT_MANAGER', 'SUPPORT_AGENT']);
+  });
+});
+
+describe('toOrders (SCRUM-105)', () => {
+  const row = (id) => ({
+    id,
+    status: 'PROCESSING',
+    total: '10.00',
+    deliveryAddress: 'A',
+    cardLast4: '4242',
+    createdAt: 'x',
+    deliveredAt: null,
+  });
+  const item = (id, orderId) => ({ id, orderId, productId: 2, name: 'N', model: 'M', quantity: 1, unitPrice: '10.00' });
+
+  it('keeps the order of the rows and gives each order only its own items', () => {
+    const orders = toOrders([row(12), row(9)], [item(1, 9), item(2, 12), item(3, 9)]);
+    expect(orders.map((o) => o.id)).toEqual([12, 9]);
+    expect(orders[0].items.map((i) => i.id)).toEqual([2]);
+    expect(orders[1].items.map((i) => i.id)).toEqual([1, 3]);
+    expect(orders[1].items[0]).toEqual({ id: 1, productId: 2, name: 'N', model: 'M', quantity: 1, unitPrice: 10 });
+  });
+
+  it('gives an order without items items: [] and no rows []', () => {
+    expect(toOrders([row(7)], [])[0].items).toEqual([]);
+    expect(toOrders([], [])).toEqual([]);
   });
 });

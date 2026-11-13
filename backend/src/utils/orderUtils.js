@@ -52,6 +52,17 @@ export function orderTotal(lines) {
   return roundMoney(lines.reduce((sum, line) => sum + line.lineTotal, 0));
 }
 
+// Besides the customer who placed it, these roles may open any order (handbook 8.3 "owner or
+// staff"): every role except CUSTOMER.
+export const ORDER_STAFF_ROLES = ['SALES_MANAGER', 'PRODUCT_MANAGER', 'SUPPORT_AGENT'];
+
+// true if this logged-in user may see an order that belongs to ownerId.
+// user is req.user ({ id, role }) from the login token.
+export function canViewOrder(user, ownerId) {
+  if (!user) return false;
+  return Number(user.id) === Number(ownerId) || ORDER_STAFF_ROLES.includes(user.role);
+}
+
 // Builds the Order object of handbook 8.1 from an orders row and its order_items rows
 // (each item row joined with its product's name and model). Keys are camelCase already.
 export function toOrder(orderRow, itemRows) {
@@ -72,4 +83,12 @@ export function toOrder(orderRow, itemRows) {
       unitPrice: Number(item.unitPrice),
     })),
   };
+}
+
+// Builds many Order objects at once (GET /orders). orderRows keep their order; itemRows are the
+// items of all of them, each with its orderId. An order without items gets items: [].
+export function toOrders(orderRows, itemRows) {
+  const itemsByOrder = new Map(orderRows.map((row) => [row.id, []]));
+  for (const item of itemRows) itemsByOrder.get(item.orderId)?.push(item);
+  return orderRows.map((row) => toOrder(row, itemsByOrder.get(row.id)));
 }
