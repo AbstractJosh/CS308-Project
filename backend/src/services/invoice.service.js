@@ -10,6 +10,7 @@
 import db from '../db/knex.js';
 import { forbidden, notFound } from '../utils/httpError.js';
 import { buildInvoicePdf, invoiceNumberFor } from '../utils/invoicePdf.js';
+import { sendInvoiceEmail } from './email.service.js';
 
 // Besides the customer who placed the order, these roles may open any invoice (handbook 7.6).
 export const INVOICE_STAFF_ROLES = ['PRODUCT_MANAGER', 'SALES_MANAGER'];
@@ -33,11 +34,20 @@ export function canViewInvoice(user, ownerId) {
 
 // Loads one invoice with everything the PDF needs, in the shape buildInvoicePdf expects,
 // plus orderId and userId (the customer). Unknown id: 404.
-export async function loadInvoice(invoiceId) {
+export function loadInvoice(invoiceId) {
+  return loadInvoiceWhere('i.id', invoiceId);
+}
+
+// The same, found by its order instead (SCRUM-50: the checkout knows the order id).
+export function loadInvoiceForOrder(orderId) {
+  return loadInvoiceWhere('i.order_id', orderId);
+}
+
+async function loadInvoiceWhere(column, value) {
   const row = await db('invoices as i')
     .join('orders as o', 'o.id', 'i.order_id')
     .join('users as u', 'u.id', 'o.user_id')
-    .where('i.id', invoiceId)
+    .where(column, value)
     .first(
       'i.id',
       'i.order_id',
@@ -86,4 +96,27 @@ export async function getInvoicePdf(invoiceId, user) {
   if (!canViewInvoice(user, invoice.userId)) throw forbidden();
   const pdf = await buildInvoicePdf(invoice);
   return { invoiceNumber: invoice.invoiceNumber, pdf };
+}
+
+// Sprint 2, SCRUM-50 (Murat): emails the invoice PDF to the customer (handbook 7.4 step 7, req 4).
+// The checkout calls this AFTER its transaction is committed, so the order is already saved:
+//   const emailSent = await invoiceService.sendInvoiceForOrder(order.id);
+//   res.status(201).json({ order, invoice, emailSent });
+// It never throws. If anything fails (no invoice, no internet, the mail server says no),
+// the error is logged and it returns false; the order and the invoice stay as they are.
+export async function sendInvoiceForOrder(orderId) {
+  try {
+    const invoice = await loadInvoiceForOrder(orderId);
+    const pdf = await buildInvoicePdf(invoice);
+    await sendInvoiceEmail({
+      to: invoice.customer.email,
+      name: invoice.customer.name,
+      invoiceNumber: invoice.invoiceNumber,
+      pdf,
+    });
+    return true;
+  } catch (err) {
+    console.error(`Invoice email for order ${orderId} was not sent: ${err.message}`);
+    return false;
+  }
 }

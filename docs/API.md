@@ -130,6 +130,8 @@ The checkout writes one invoice per order, numbered `INV-` plus the order id pad
 The PDF shows the invoice number, date, customer name, email and tax ID, delivery address, every item with quantity, unit price and line total, and the total (handbook 7.6). Only the last 4 card digits are printed.
 Any other customer gets 403, even for an invoice that exists.
 
+After a successful checkout the customer also gets the PDF by email (SCRUM-50): `invoiceService.sendInvoiceForOrder(orderId)` runs after the commit and returns `true` or `false`, which `POST /checkout` passes on as `emailSent`. A failed email never cancels the order (req 4). In development the backend console prints an Ethereal preview link (see the README).
+
 The frontend opens it with the login token, for example `fetch('/api/invoices/7/pdf', { headers: { Authorization: 'Bearer ' + token } })`, then shows the blob in a new tab. A plain link cannot send the token.
 
 ## Admin (Neslihan, Murat, Sidar)
