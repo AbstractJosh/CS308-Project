@@ -1,0 +1,221 @@
+/* Checkout page (handbook 9.6 "Cart and checkout", "Forms"). Uses only the variables and
+   classes from global.css. .checkout-page is not also a .container: global.css loads after
+   this file, and its .container padding would reset the padding-top below to 0. */
+.checkout-page {
+  padding-top: 56px;
+  padding-bottom: var(--section-gap);
+}
+
+.checkout-header {
+  margin-bottom: 32px;
+}
+
+.checkout-title {
+  font-size: 44px;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+/* ---------- Step indicator ---------- */
+.checkout-steps {
+  list-style: none;
+  display: flex;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.checkout-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.checkout-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.checkout-step-active {
+  color: var(--text);
+}
+
+.checkout-step-active .checkout-step-number {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+/* Form panel on the left, order summary on the right; they stack below 768 px (9.5). */
+.checkout-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 48px;
+  align-items: start;
+}
+
+.checkout-panel {
+  padding: 32px;
+}
+
+.checkout-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+.checkout-panel-title svg {
+  color: var(--champagne);
+}
+
+.checkout-panel textarea.input {
+  resize: vertical;
+  min-height: 104px;
+}
+
+/* Expiry and CVV side by side. */
+.checkout-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.checkout-address-recap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* DM Mono label (9.4). */
+.checkout-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.checkout-address-text {
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* "Change" is a text link (9.6). */
+.checkout-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.checkout-link:hover {
+  text-decoration: underline;
+}
+
+.checkout-test-cards {
+  margin: 0 0 16px;
+}
+
+.checkout-form-error {
+  margin: 0 0 16px;
+}
+
+.checkout-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.checkout-safe-note {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+/* ---------- Summary card: --surface, radius 16, sticky (9.6) ---------- */
+.checkout-summary {
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  padding: 28px;
+}
+
+.checkout-summary-title {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.checkout-summary-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.checkout-summary-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.checkout-summary-items li > span:last-child {
+  white-space: nowrap;
+}
+
+.checkout-summary-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 16px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.checkout-edit-cart {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .checkout-page {
+    padding-top: 32px;
+  }
+
+  .checkout-title {
+    font-size: 34px;
+  }
+
+  .checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  /* On a phone the summary comes first, so the buyer sees the total before paying. */
+  .checkout-summary {
+    position: static;
+    order: -1;
+    padding: 20px;
+  }
+
+  .checkout-panel {
+    padding: 24px 20px;
+  }
+}
