@@ -139,9 +139,17 @@ The frontend opens it with the login token, for example `fetch('/api/invoices/7/
 | Method and path | Auth | Request | Success | Errors |
 |---|---|---|---|---|
 | `GET /admin/deliveries` | product manager | query `completed=true\|false` (optional) | 200 `{ deliveries: [{ id, orderId, customerId, productId, productName, quantity, totalPrice, deliveryAddress, completed, orderStatus }] }` | 400 (bad `completed`), 401, 403 |
+| `PATCH /admin/orders/:id/status` | product manager | `{ status: "IN_TRANSIT" \| "DELIVERED" }` | 200 `{ order }` | 400 (bad id, bad status, bad move), 401, 403, 404 `Order not found` |
 
 ### Delivery list (Neslihan, SCRUM-57)
 
 One delivery row per order item, written when the order is placed (SCRUM-35). Open deliveries (`completed: false`) come first, then the newest first.
 `totalPrice` is the line total the customer paid. `orderStatus` is the order's status (`PROCESSING`, `IN_TRANSIT`, `DELIVERED`, `CANCELLED`).
 `completed` becomes `true` when the product manager moves the order to `DELIVERED` (`PATCH /admin/orders/:id/status`, SCRUM-60).
+
+### Order status (Neslihan, SCRUM-60)
+
+The product manager moves an order forward one step at a time: `PROCESSING` -> `IN_TRANSIT` -> `DELIVERED` (handbook 7.5).
+Any other move gives 400, for example `This order is PROCESSING, so it can only be moved to IN_TRANSIT, not DELIVERED`. A `DELIVERED` or `CANCELLED` order cannot be moved: `This order is DELIVERED and cannot be moved any more`.
+Moving to `DELIVERED` sets the order's `deliveredAt` and marks every delivery row of the order `completed: true`, in the same transaction. The customer sees the new status in their order history.
+The order row is locked while it changes, so two clicks at the same time cannot move it twice.
