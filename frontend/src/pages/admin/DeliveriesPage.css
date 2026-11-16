@@ -81,3 +81,15 @@
   min-width: 200px;
   color: var(--champagne);
 }
+
+/* SCRUM-60: the move button in each row and the message when a move fails */
+.deliveries-action {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.deliveries-move-error {
+  color: var(--error);
+  margin: 0 0 1rem;
+}
