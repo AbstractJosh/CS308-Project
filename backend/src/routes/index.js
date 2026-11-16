@@ -40,7 +40,7 @@ import * as invoicesController from '../controllers/invoices.controller.js';
 // Uses requireAuth and validate from the AUTH block above.
 import { requireRole } from '../middleware/auth.js';
 import * as deliveriesController from '../controllers/deliveries.controller.js';
-import { deliveryListQuerySchema } from '../utils/validators.js';
+import { deliveryListQuerySchema, orderStatusSchema } from '../utils/validators.js';
 
 const router = Router();
 
@@ -94,6 +94,15 @@ router.get(
   requireRole('PRODUCT_MANAGER'),
   validate(deliveryListQuerySchema, 'query'),
   deliveriesController.list,
+);
+// Move an order forward: PROCESSING -> IN_TRANSIT -> DELIVERED (Neslihan, SCRUM-60, req 12).
+router.patch(
+  '/admin/orders/:id/status',
+  requireAuth,
+  requireRole('PRODUCT_MANAGER'),
+  validate(idParamSchema, 'params'),
+  validate(orderStatusSchema),
+  deliveriesController.updateStatus,
 );
 
 export default router;
