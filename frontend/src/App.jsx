@@ -7,6 +7,7 @@ import { Routes, Route } from 'react-router-dom';
 // ----- imports: LAYOUT (Sidar: Header, Footer) -----
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
+import ScrollToTop from './components/ScrollToTop.jsx';
 
 // ----- imports: PAGES (owners replace their own placeholder page file, not these lines) -----
 import HomePage from './pages/HomePage.jsx';
@@ -36,6 +37,7 @@ export default function App() {
   return (
     <>
       {/* LAYOUT: Sidar puts <Header /> here */}
+      <ScrollToTop />
       <Header />
       <main className="app-main">
         <Routes>
