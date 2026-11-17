@@ -31,6 +31,9 @@ import {
 // ----- imports: ORDERS (Luis, Ulukan) -----
 // Uses requireAuth and validate from the AUTH block and idParamSchema from the CATALOG block.
 import * as ordersController from '../controllers/orders.controller.js';
+// SCRUM-59 (Luis): POST /checkout. requireRole comes from the ADMIN block below.
+import * as checkoutController from '../controllers/checkout.controller.js';
+import { checkoutSchema } from '../utils/validators.js';
 
 // ----- imports: INVOICES (Murat) -----
 // Uses requireAuth and validate from the AUTH block and idParamSchema from the CATALOG block.
@@ -81,6 +84,9 @@ router.post('/cart/merge', requireAuth, validate(cartMergeSchema), cartControlle
 // Order history (SCRUM-105): the user's own orders; one order for its customer or staff.
 router.get('/orders', requireAuth, ordersController.list);
 router.get('/orders/:id', requireAuth, validate(idParamSchema, 'params'), ordersController.getById);
+// Checkout (SCRUM-59): customers only (handbook 8.3). Pays the cart and answers
+// 201 { order, invoice, emailSent }; 400 card/address/empty cart, 402 bank, 409 stock.
+router.post('/checkout', requireAuth, requireRole('CUSTOMER'), validate(checkoutSchema), checkoutController.create);
 
 // ===== INVOICES (Murat) =====
 // The invoice PDF: the order's customer, product managers and sales managers only (SCRUM-49, req 4).

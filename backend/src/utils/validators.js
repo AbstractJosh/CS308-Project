@@ -181,6 +181,19 @@ export const cardSchema = z
     }
   });
 
+// SCRUM-59 (Luis): the body of POST /checkout (handbook 8.3, docs/API.md).
+// deliveryAddress: 10 to 300 characters after trimming, with the checkout page's messages.
+// cardText (above) gives one message per field: "required" when empty, otherwise "invalid".
+export const checkoutSchema = z.object({
+  deliveryAddress: cardText(
+    'Delivery address is required',
+    'Delivery address must be 10 to 300 characters',
+    (address) => address.trim(),
+    (address) => address.length >= 10 && address.length <= 300,
+  ),
+  card: cardSchema,
+});
+
 // ===== ADMIN (Neslihan, Murat, Sidar) =====
 
 // Delivery list (Neslihan, SCRUM-57)
