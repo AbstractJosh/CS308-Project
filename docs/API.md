@@ -73,6 +73,7 @@ Guests keep their cart in `localStorage` (`crema_guest_cart`); these routes are 
 |---|---|---|---|---|
 | GET /orders | user | - | 200 `{ orders }` newest first | 401 |
 | GET /orders/:id | the order's customer, sales manager, product manager, support agent | - | 200 `{ order }` | 400 (bad id), 401, 403, 404 `Order not found` |
+| POST /checkout | customer | `{ deliveryAddress, card: { number, holderName, expiryMonth, expiryYear, cvv } }` | 201 `{ order, invoice: { id, invoiceNumber }, emailSent }` | 400, 401, 402, 403 (staff), 409 |
 
 `order` is the Order object of handbook 8.1: `{ id, status, total, deliveryAddress, cardLast4, createdAt, deliveredAt, items: [{ id, productId, name, model, quantity, unitPrice }] }`. `total` and `unitPrice` are numbers; `unitPrice` is the price paid at checkout, not today's price. `deliveredAt` is `null` until the order is delivered.
 
@@ -116,6 +117,14 @@ A wrong field gives 400 with `details`, where `field` is the name below:
 Rejected by the bank: 402 `{ "error": "Payment was rejected by the bank" }`. Nothing is saved and the cart and stock stay the same, so the user can try another card.
 
 Checks run in this order: card fields (400), empty cart (400 `Your cart is empty`), stock (409), bank (402).
+
+### Checkout (Luis, Neslihan, SCRUM-59)
+
+- `deliveryAddress`: 10 to 300 characters after trimming. Messages: `Delivery address is required`, `Delivery address must be 10 to 300 characters` (`details[].field` is `deliveryAddress`).
+- Not enough stock: 409 with `details: [{ field: "productId", message: "<name> has only N left" }]`.
+- Everything runs in one transaction: order, items, deliveries, payment and invoice are saved together, stock goes down, popularity goes up and the cart is emptied. Any error saves nothing.
+- The invoice email is sent after the commit; `emailSent` is `false` if it failed, and the order stays.
+- Only customers can check out; staff get 403.
 
 Only the last 4 digits and a salted hash of the number are saved, never the full number or the CVV.
 
