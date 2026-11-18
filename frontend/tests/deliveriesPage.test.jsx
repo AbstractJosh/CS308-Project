@@ -76,3 +76,38 @@ describe('DeliveriesPage', () => {
     expect(list).toHaveBeenCalledTimes(2);
   });
 });
+
+// SCRUM-60: the product manager moves an order forward from the list (req 12).
+describe('DeliveriesPage order status buttons', () => {
+  const processing = { ...open, id: 8, orderId: 5, orderStatus: 'PROCESSING' };
+
+  it('shows the next step for each order and nothing for delivered ones', async () => {
+    vi.spyOn(adminApi, 'deliveries').mockResolvedValue({ deliveries: [processing, open, done] });
+    render(<DeliveriesPage />);
+    expect(await screen.findByRole('button', { name: 'Mark in transit: order #5' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mark delivered: order #3' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /order #2/ })).not.toBeInTheDocument();
+  });
+
+  it('moves the whole order and reloads the list', async () => {
+    const list = vi
+      .spyOn(adminApi, 'deliveries')
+      .mockResolvedValueOnce({ deliveries: [open] })
+      .mockResolvedValueOnce({ deliveries: [] });
+    const move = vi.spyOn(adminApi, 'updateOrderStatus').mockResolvedValue({ order: { id: 3, status: 'DELIVERED' } });
+    render(<DeliveriesPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Mark delivered: order #3' }));
+    expect(move).toHaveBeenCalledWith(3, 'DELIVERED');
+    expect(await screen.findByText('Nothing to deliver right now. New orders show up here.')).toBeInTheDocument();
+    expect(list).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the server message when a move is refused and keeps the list', async () => {
+    vi.spyOn(adminApi, 'deliveries').mockResolvedValue({ deliveries: [open] });
+    vi.spyOn(adminApi, 'updateOrderStatus').mockRejectedValue(new Error('This order is DELIVERED and cannot be moved any more'));
+    render(<DeliveriesPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Mark delivered: order #3' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Order #3: This order is DELIVERED and cannot be moved any more');
+    expect(screen.getByText('Zassenhaus Manaos Hand Grinder')).toBeInTheDocument();
+  });
+});

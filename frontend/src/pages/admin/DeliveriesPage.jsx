@@ -5,13 +5,19 @@ import { formatPrice } from '../../utils/format.js';
 import './DeliveriesPage.css';
 
 // /admin/deliveries: the product manager's delivery list (req 12). Owner: Neslihan (SCRUM-57).
-// One row per order item, with the fields of handbook 8.3. Orders are moved forward
-// (in transit, delivered) in SCRUM-60; delivered orders mark their rows completed.
+// One row per order item, with the fields of handbook 8.3. SCRUM-60: the product manager moves
+// an order forward (in transit, then delivered); delivered orders mark their rows completed.
 const FILTERS = [
   { label: 'To deliver', completed: false },
   { label: 'Completed', completed: true },
   { label: 'All', completed: undefined },
 ];
+
+// The one button each order status gets (handbook 7.5). Delivered and cancelled orders get none.
+const NEXT_ACTION = {
+  PROCESSING: { status: 'IN_TRANSIT', label: 'Mark in transit' },
+  IN_TRANSIT: { status: 'DELIVERED', label: 'Mark delivered' },
+};
 
 const EMPTY_TEXT = {
   false: 'Nothing to deliver right now. New orders show up here.',
@@ -23,6 +29,22 @@ export default function DeliveriesPage() {
   const [filter, setFilter] = useState(FILTERS[0]);
   const [state, setState] = useState({ status: 'loading', deliveries: [], error: '' });
   const [reloadCount, setReloadCount] = useState(0);
+  const [moving, setMoving] = useState(null); // order id being moved, so its buttons wait
+  const [moveError, setMoveError] = useState('');
+
+  // One order can have several rows; the button moves the whole order, then the list reloads.
+  async function moveOrder(orderId, status) {
+    setMoving(orderId);
+    setMoveError('');
+    try {
+      await adminApi.updateOrderStatus(orderId, status);
+      setReloadCount((n) => n + 1);
+    } catch (err) {
+      setMoveError(`Order #${orderId}: ${err.message}`);
+    } finally {
+      setMoving(null);
+    }
+  }
 
   useEffect(() => {
     let active = true; // ignore an old answer if the filter changed meanwhile
@@ -57,6 +79,12 @@ export default function DeliveriesPage() {
         ))}
       </div>
 
+      {moveError && (
+        <p className="deliveries-move-error" role="alert">
+          {moveError}
+        </p>
+      )}
+
       {state.status === 'loading' && <p className="muted">Loading deliveries…</p>}
 
       {state.status === 'error' && (
@@ -90,6 +118,7 @@ export default function DeliveriesPage() {
                 <th scope="col">Address</th>
                 <th scope="col">Order status</th>
                 <th scope="col">Completed</th>
+                <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -109,6 +138,19 @@ export default function DeliveriesPage() {
                     <OrderStatusPill status={delivery.orderStatus} />
                   </td>
                   <td>{delivery.completed ? 'Yes' : 'No'}</td>
+                  <td>
+                    {NEXT_ACTION[delivery.orderStatus] && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary deliveries-action"
+                        disabled={moving === delivery.orderId}
+                        aria-label={`${NEXT_ACTION[delivery.orderStatus].label}: order #${delivery.orderId}`}
+                        onClick={() => moveOrder(delivery.orderId, NEXT_ACTION[delivery.orderStatus].status)}
+                      >
+                        {moving === delivery.orderId ? 'Saving…' : NEXT_ACTION[delivery.orderStatus].label}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

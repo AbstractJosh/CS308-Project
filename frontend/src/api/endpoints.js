@@ -55,4 +55,7 @@ export const ordersApi = {
 export const adminApi = {
   deliveries: (completed) =>
     api(completed === undefined ? '/admin/deliveries' : `/admin/deliveries?completed=${completed}`),
+  // SCRUM-60 (Neslihan): move an order forward. status: 'IN_TRANSIT' or 'DELIVERED'.
+  updateOrderStatus: (orderId, status) =>
+    api(`/admin/orders/${orderId}/status`, { method: 'PATCH', body: { status } }),
 };
