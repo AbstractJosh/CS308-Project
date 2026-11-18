@@ -26,3 +26,10 @@ describe('adminApi.deliveries', () => {
     expect(api).toHaveBeenCalledWith('/admin/deliveries');
   });
 });
+
+describe('adminApi.updateOrderStatus', () => {
+  it('sends PATCH /admin/orders/:id/status with the new status', async () => {
+    await adminApi.updateOrderStatus(3, 'IN_TRANSIT');
+    expect(api).toHaveBeenCalledWith('/admin/orders/3/status', { method: 'PATCH', body: { status: 'IN_TRANSIT' } });
+  });
+});

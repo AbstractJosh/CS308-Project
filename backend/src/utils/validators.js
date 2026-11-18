@@ -204,3 +204,11 @@ export const deliveryListQuerySchema = z.object({
     .optional()
     .transform((value) => (value === undefined ? undefined : value === 'true')),
 });
+
+// Order status (Neslihan, SCRUM-60)
+// PATCH /admin/orders/:id/status body (handbook 8.3): the product manager moves an order forward.
+export const orderStatusSchema = z.object({
+  status: z.enum(['IN_TRANSIT', 'DELIVERED'], {
+    errorMap: () => ({ message: 'Status must be IN_TRANSIT or DELIVERED' }),
+  }),
+});
