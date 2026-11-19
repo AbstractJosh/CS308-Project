@@ -50,6 +50,12 @@ export const ordersApi = {
   get: (id) => api(`/orders/${encodeURIComponent(id)}`),
 };
 
+// SCRUM-54 (Sezin): Luis's POST /checkout (SCRUM-59, docs/API.md). body: { deliveryAddress, card }.
+// Answers 201 { order, invoice: { id, invoiceNumber }, emailSent }.
+export const checkoutApi = {
+  create: (body) => api('/checkout', { method: 'POST', body }),
+};
+
 // ===== ADMIN: adminApi (Neslihan, Murat, Sidar) =====
 // SCRUM-57 (Neslihan): delivery list for the product manager. completed: true, false or undefined (all).
 export const adminApi = {
