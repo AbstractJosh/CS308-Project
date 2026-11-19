@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CreditCard, Lock, MapPin } from 'lucide-react';
+import { AlertCircle, CheckCircle2, CreditCard, Download, Loader2, Lock, MapPin } from 'lucide-react';
 import FormField from '../components/FormField.jsx';
+import OrderStatusPill from '../components/OrderStatusPill.jsx';
+import { checkoutApi } from '../api/endpoints.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { formatPrice } from '../utils/format.js';
+import { formatOrderDate } from '../utils/orderDates.js';
+import { downloadInvoicePdf } from '../utils/invoicePdf.js';
 import {
   checkoutBody,
   checkoutServerErrors,
@@ -13,11 +17,11 @@ import {
   validateAddress,
   validateCard,
 } from '../utils/checkoutForm.js';
-import { fakeCheckout } from './CheckoutPage.fakeData.js';
 import './CheckoutPage.css';
 
 // Checkout page, route /checkout, only for logged-in users (handbook 7.3, 7.4, 9.6).
-// Owner: Sezin (SCRUM-53). Step 1: delivery address. Step 2: card payment (req 15).
+// Owner: Sezin (SCRUM-53, SCRUM-54). Step 1: delivery address. Step 2: card payment (req 15),
+// sent to POST /checkout. Then the confirmation with the invoice download (req 4).
 // The card details stay in this page's memory only: never in localStorage, never logged.
 const EMPTY_CARD = { holderName: '', number: '', expiry: '', cvv: '' };
 
@@ -32,16 +36,17 @@ export default function CheckoutPage() {
   const [addressError, setAddressError] = useState('');
   const [result, setResult] = useState(null);
 
-  // SCRUM-108: the paid items must leave the cart. The real POST /checkout empties the cart on
-  // the server (handbook 7.4 step 6); with the fake payment the page removes them itself.
-  // TODO(SCRUM-54): with the real API, reload the cart from the server instead.
-  function emptyCart(paidItems) {
+  // SCRUM-108: after paying, the cart on this page must be empty too. POST /checkout already
+  // emptied it on the server (handbook 7.4 step 6), but CartContext still holds the old items.
+  // Every cart call answers with the server's cart, and removing an item that is no longer
+  // there is fine, so these calls bring the page (and the header count) up to date.
+  function syncCartAfterPaying(paidItems) {
     return Promise.allSettled(paidItems.map((item) => removeItem(item.productId)));
   }
 
   if (!ready) return <PageMessage title="Loading your cart" text="One moment." />;
 
-  if (step === 'done') return <OrderPlaced result={result} />;
+  if (step === 'done') return <OrderConfirmation result={result} email={user?.email} />;
 
   if (cart.items.length === 0) {
     return (
@@ -100,7 +105,7 @@ export default function CheckoutPage() {
                   const paidItems = cart.items;
                   setResult(answer);
                   setStep('done');
-                  emptyCart(paidItems);
+                  syncCartAfterPaying(paidItems);
                 }}
               />
             )}
@@ -174,7 +179,7 @@ function AddressStep({ address, serverError, onChange, onContinue }) {
 function PaymentStep({ address, cart, onChangeAddress, onAddressRejected, onPaid }) {
   const [card, setCard] = useState(EMPTY_CARD);
   const [submitted, setSubmitted] = useState(false);
-  const [apiErrors, setApiErrors] = useState({ fields: {}, form: '' });
+  const [apiErrors, setApiErrors] = useState({ fields: {}, form: '', kind: '' });
   const [sending, setSending] = useState(false);
 
   const errors = { ...(submitted ? validateCard(card) : {}), ...apiErrors.fields };
@@ -190,7 +195,7 @@ function PaymentStep({ address, cart, onChangeAddress, onAddressRejected, onPaid
     // Remove the server's message for this field only (an "undefined" left behind would hide the
     // form's). The message above the button, like the bank's "rejected", stays until the next
     // try, so it does not vanish while the user types the CVV again (SCRUM-110).
-    setApiErrors(({ fields: { [name]: _old, ...otherFields }, form }) => ({ fields: otherFields, form }));
+    setApiErrors(({ fields: { [name]: _old, ...otherFields }, form, kind }) => ({ fields: otherFields, form, kind }));
   }
 
   async function handleSubmit(event) {
@@ -198,11 +203,11 @@ function PaymentStep({ address, cart, onChangeAddress, onAddressRejected, onPaid
     setSubmitted(true);
     if (Object.keys(validateCard(card)).length > 0) return;
 
-    setApiErrors({ fields: {}, form: '' });
+    setApiErrors({ fields: {}, form: '', kind: '' });
     setSending(true);
     try {
-      // TODO(SCRUM-54): send this body to the real POST /checkout instead of fakeCheckout.
-      onPaid(await fakeCheckout(checkoutBody(address, card), cart));
+      // POST /checkout (SCRUM-59): bank, order, payment and invoice in one go on the server.
+      onPaid(await checkoutApi.create(checkoutBody(address, card)));
     } catch (err) {
       const errors = checkoutServerErrors(err);
       // SCRUM-109: the address is on the other step, so show the message there.
@@ -283,16 +288,42 @@ function PaymentStep({ address, cart, onChangeAddress, onAddressRejected, onPaid
       </p>
       </fieldset>
 
+      {/* Rejected state: the bank said no (402), stock ran out (409) or something else failed. */}
       {apiErrors.form && (
-        <p className="field-error checkout-form-error" role="alert">
-          {apiErrors.form}
-        </p>
+        <div className="checkout-alert" role="alert">
+          <AlertCircle size={20} strokeWidth={1.5} />
+          <div>
+            <p className="checkout-alert-title">
+              {apiErrors.kind === 'rejected'
+                ? 'Payment rejected'
+                : apiErrors.kind === 'stock'
+                  ? 'Not enough stock'
+                  : 'Your order was not placed'}
+            </p>
+            <p className="checkout-alert-text">{apiErrors.form}</p>
+            {apiErrors.kind === 'stock' && (
+              <Link to="/cart" className="text-link">
+                Back to cart
+              </Link>
+            )}
+          </div>
+        </div>
       )}
 
       <button type="submit" className="btn btn-primary checkout-submit" disabled={sending}>
-        <Lock size={16} strokeWidth={1.5} />
-        {sending ? 'Paying…' : `Pay ${formatPrice(cart.subtotal)}`}
+        {sending ? (
+          <Loader2 size={16} strokeWidth={1.5} className="checkout-spinner" />
+        ) : (
+          <Lock size={16} strokeWidth={1.5} />
+        )}
+        {sending ? 'Processing payment…' : `Pay ${formatPrice(cart.subtotal)}`}
       </button>
+      {/* Processing state: the bank is being asked; this can take a moment. */}
+      {sending && (
+        <p className="muted checkout-processing" role="status">
+          Your payment is being processed. Please do not close or refresh this page.
+        </p>
+      )}
       <p className="muted checkout-safe-note">
         We never save your full card number or CVV, only the last 4 digits.
       </p>
@@ -326,17 +357,103 @@ function OrderSummary({ cart }) {
   );
 }
 
-// ---------- After paying (SCRUM-54 adds the full confirmation and invoice screen) ----------
-function OrderPlaced({ result }) {
+// ---------- Confirmation state: the order is placed (req 3, 4) ----------
+// result = the POST /checkout answer: { order, invoice: { id, invoiceNumber }, emailSent }.
+function OrderConfirmation({ result, email }) {
+  const { order, invoice, emailSent } = result;
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
+
+  // The user was further down, at the Pay button. The address does not change, so the site's
+  // ScrollToTop (SCRUM-104) does not run; scroll up here so "Thank you" is the first thing seen.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  async function handleDownload() {
+    setDownloading(true);
+    setDownloadError('');
+    try {
+      await downloadInvoicePdf(invoice);
+    } catch (err) {
+      setDownloadError(err.message);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
-    <PageMessage
-      title="Thank you, your order is placed"
-      text={`Order #${result.order.id} is being processed. Paid ${formatPrice(result.order.total)} with the card ending ${result.order.cardLast4}.`}
-    >
-      <Link to="/shop" className="btn btn-secondary">
-        Back to shop
-      </Link>
-    </PageMessage>
+    <section className="checkout-page">
+      <div className="container checkout-confirmation">
+        <header className="checkout-header">
+          <p className="eyebrow">Order confirmed</p>
+          <h1 className="checkout-title">
+            Thank you, your order is <em>placed.</em>
+          </h1>
+          <p className="checkout-confirmation-lead">
+            <CheckCircle2 size={20} strokeWidth={1.5} />
+            Order #{order.id} · {formatOrderDate(order.createdAt)} · <OrderStatusPill status={order.status} />
+          </p>
+        </header>
+
+        <div className="card checkout-panel checkout-receipt">
+          <ul className="checkout-summary-items" aria-label="Items you bought">
+            {order.items.map((item) => (
+              <li key={item.id}>
+                <span>
+                  {item.name} <span className="muted">× {item.quantity}</span>
+                </span>
+                <span>{formatPrice(item.unitPrice * item.quantity)}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="checkout-summary-total">
+            <span>Total paid</span>
+            <span>{formatPrice(order.total)}</span>
+          </div>
+
+          <dl className="checkout-receipt-details">
+            <div>
+              <dt className="checkout-label">Deliver to</dt>
+              <dd>{order.deliveryAddress}</dd>
+            </div>
+            <div>
+              <dt className="checkout-label">Paid with</dt>
+              <dd>Card ending {order.cardLast4}</dd>
+            </div>
+            <div>
+              <dt className="checkout-label">Invoice</dt>
+              <dd>{invoice.invoiceNumber}</dd>
+            </div>
+          </dl>
+
+          {/* A failed email never cancels the order (docs/API.md); the PDF is always here. */}
+          <p className="muted checkout-email-note">
+            {emailSent
+              ? `We emailed the invoice${email ? ` to ${email}` : ''}. You can also download it here.`
+              : 'We could not email the invoice this time, but your order is placed. Download it here.'}
+          </p>
+
+          <div className="checkout-confirmation-actions">
+            <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={downloading}>
+              <Download size={16} strokeWidth={1.5} />
+              {downloading ? 'Downloading…' : 'Download invoice (PDF)'}
+            </button>
+            <Link to={`/orders/${order.id}`} className="btn btn-secondary">
+              View order
+            </Link>
+          </div>
+          {downloadError && (
+            <p className="field-error checkout-form-error" role="alert">
+              {downloadError}
+            </p>
+          )}
+          <Link to="/shop" className="text-link checkout-edit-cart">
+            Continue shopping
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
