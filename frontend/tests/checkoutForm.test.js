@@ -88,11 +88,12 @@ describe('checkoutBody', () => {
 describe('checkoutServerErrors', () => {
   it('puts API field errors on the form fields and other errors above the button', () => {
     const invalid = { status: 400, message: 'This card has expired', details: [{ field: 'card.expiryMonth', message: 'This card has expired' }] };
-    expect(checkoutServerErrors(invalid)).toEqual({ fields: { expiry: 'This card has expired' }, form: '' });
+    expect(checkoutServerErrors(invalid)).toEqual({ fields: { expiry: 'This card has expired' }, form: '', kind: 'other' });
     const rejected = { status: 402, message: 'Payment was rejected by the bank' };
     expect(checkoutServerErrors(rejected)).toEqual({
       fields: {},
       form: 'Payment was rejected by the bank. You can try another card.',
+      kind: 'rejected',
     });
     const down = { status: 0, message: 'Cannot reach the server. Is the backend running?' };
     expect(checkoutServerErrors(down).form).toBe('Cannot reach the server. Is the backend running?');
@@ -113,5 +114,21 @@ describe('formatExpiry with a 4-digit year (SCRUM-111)', () => {
     expect(formatExpiry('112')).toBe('11/2');
     expect(formatExpiry('11/29')).toBe('11/29');
     expect(formatExpiry('11/295')).toBe('11/29');
+  });
+});
+
+describe('checkoutServerErrors for the real API (SCRUM-54)', () => {
+  it('turns a 409 into a stock message that names the product', () => {
+    const err = { status: 409, message: 'Not enough stock', details: [{ field: 'productId', message: 'Caso Grinder has only 2 left' }] };
+    expect(checkoutServerErrors(err)).toEqual({
+      fields: {},
+      form: 'Caso Grinder has only 2 left. Change the quantity in your cart to continue.',
+      kind: 'stock',
+    });
+  });
+
+  it('shows the address message from the server on the address field', () => {
+    const err = { status: 400, message: 'Delivery address must be 10 to 300 characters', details: [{ field: 'deliveryAddress', message: 'Delivery address must be 10 to 300 characters' }] };
+    expect(checkoutServerErrors(err).fields).toEqual({ deliveryAddress: 'Delivery address must be 10 to 300 characters' });
   });
 });
