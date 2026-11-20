@@ -1,0 +1,139 @@
+.admin-products-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-products-header-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-products-count {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+}
+
+.admin-products-panel {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
+
+.admin-products-panel-title {
+  margin-bottom: 20px;
+}
+
+.admin-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+}
+
+.admin-products-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-products-wide textarea {
+  resize: vertical;
+}
+
+.admin-products-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.admin-products-alert {
+  margin-bottom: 16px;
+}
+
+.admin-products-message {
+  padding: 48px 0;
+}
+
+.admin-products-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-products-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-products-table th {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-products-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  vertical-align: top;
+}
+
+.admin-products-mono,
+.admin-products-sub {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.admin-products-mono {
+  white-space: nowrap;
+}
+
+.admin-products-sub {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.admin-products-sold-out {
+  color: var(--error);
+  white-space: nowrap;
+}
+
+.admin-products-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-products-actions .admin-products-small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.admin-products-confirm {
+  color: var(--champagne);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .admin-products-grid {
+    grid-template-columns: 1fr;
+  }
+}
