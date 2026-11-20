@@ -4,20 +4,31 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import App from '../src/App.jsx';
 import CartPage, { CartView } from '../src/pages/CartPage.jsx';
-import { buildCart, fakeCartItems } from '../src/pages/CartPage.fakeData.js';
 import { AuthProvider } from '../src/context/AuthContext.jsx';
 import { ToastProvider } from '../src/context/ToastContext.jsx';
 import { CartProvider } from '../src/context/CartContext.jsx';
-import { saveGuestItems } from '../src/utils/cartStorage.js';
+import { buildCart, saveGuestItems } from '../src/utils/cartStorage.js';
 import { authApi, cartApi } from '../src/api/endpoints.js';
 import { tokenStore } from '../src/api/client.js';
 
 const routerFlags = { v7_startTransition: true, v7_relativeSplatPath: true };
 
-// The cart page with the real AuthProvider and CartProvider (SCRUM-71). The fake items are put
+// Three real seed products (handbook Appendix A), in the guest-cart shape of handbook 9.7.
+// They used to live in src/pages/CartPage.fakeData.js; the page uses the real cart now
+// (SCRUM-71), so the sample data belongs to the test (SCRUM-55).
+const product = (id, name, model, serialNumber, price, imageCount, quantityInStock) => ({
+  id, name, model, serialNumber, price, imageCount, quantityInStock,
+});
+const cartItems = [
+  { productId: 3, quantity: 1, product: product(3, 'Sage The Barista Express Impress', 'SES876 BSS', 'CRM-EM-1003', 99999, 8, 9) },
+  { productId: 40, quantity: 2, product: product(40, 'Zassenhaus Manaos Hand Grinder', 'Manaos', 'CRM-GR-8004', 4199, 4, 14) },
+  { productId: 45, quantity: 1, product: product(45, 'Bialetti Thermos 750 ml Grey', 'Thermos 750 ml', 'CRM-SV-9005', 1799, 1, 22) },
+];
+
+// The cart page with the real AuthProvider and CartProvider (SCRUM-71). The sample items are put
 // in the guest cart in localStorage, so no backend is needed.
 function renderCart() {
-  saveGuestItems(fakeCartItems);
+  saveGuestItems(cartItems);
   return render(
     <MemoryRouter initialEntries={['/cart']} future={routerFlags}>
       <ToastProvider>
@@ -41,7 +52,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('buildCart', () => {
   it('counts units and adds up the subtotal (handbook 8.1 Cart)', () => {
-    const cart = buildCart(fakeCartItems);
+    const cart = buildCart(cartItems);
     expect(cart.itemCount).toBe(4); // 1 machine + 2 grinders + 1 thermos
     expect(cart.subtotal).toBe(99999 + 2 * 4199 + 1799);
   });
@@ -113,7 +124,7 @@ describe('CartPage', () => {
     tokenStore.set('saved-token');
     vi.spyOn(authApi, 'me').mockResolvedValueOnce({ user: { id: 1, name: 'Demo Customer', role: 'CUSTOMER' } });
     // Logged in, the guest cart is merged into the saved cart on the server.
-    vi.spyOn(cartApi, 'merge').mockResolvedValueOnce({ cart: buildCart(fakeCartItems) });
+    vi.spyOn(cartApi, 'merge').mockResolvedValueOnce({ cart: buildCart(cartItems) });
     renderCart();
     expect(await screen.findByRole('link', { name: /go to checkout/i })).toHaveAttribute('href', '/checkout');
     expect(screen.queryByText(/shopping as a guest/i)).not.toBeInTheDocument();
@@ -122,16 +133,74 @@ describe('CartPage', () => {
 
 describe('CartView', () => {
   it('blocks checkout while a sold-out product is in the cart (req 7)', () => {
-    const soldOut = { ...fakeCartItems[2], product: { ...fakeCartItems[2].product, quantityInStock: 0 } };
+    const soldOut = { ...cartItems[2], product: { ...cartItems[2].product, quantityInStock: 0 } };
     render(
       <MemoryRouter future={routerFlags}>
         <ToastProvider>
-          <CartView cart={buildCart([fakeCartItems[0], soldOut])} loggedIn onQuantityChange={() => {}} onRemove={() => {}} />
+          <CartView cart={buildCart([cartItems[0], soldOut])} loggedIn onQuantityChange={() => {}} onRemove={() => {}} />
         </ToastProvider>
       </MemoryRouter>
     );
     expect(screen.getByRole('button', { name: /go to checkout/i })).toBeDisabled();
     expect(screen.getByRole('alert')).toHaveTextContent('Remove the sold-out items to continue.');
     expect(within(row('Bialetti Thermos 750 ml Grey')).getByText('Sold out')).toBeInTheDocument();
+  });
+});
+
+// SCRUM-55: what the cart page does when the cart API says no, and while it loads.
+describe('CartPage with the cart API (SCRUM-55)', () => {
+  const customer = { id: 1, name: 'Demo Customer', role: 'CUSTOMER' };
+  const apiError = (status, message) => Object.assign(new Error(message), { status });
+
+  // A logged-in customer whose saved cart (GET /cart) holds the three sample items.
+  function renderSavedCart(getCart = () => Promise.resolve({ cart: buildCart(cartItems) })) {
+    tokenStore.set('saved-token');
+    vi.spyOn(authApi, 'me').mockResolvedValue({ user: customer });
+    vi.spyOn(cartApi, 'get').mockImplementation(getCart);
+    return render(
+      <MemoryRouter initialEntries={['/cart']} future={routerFlags}>
+        <ToastProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Routes>
+                <Route path="/cart" element={<CartPage />} />
+              </Routes>
+            </CartProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+  }
+
+  it('shows "Loading your cart" until the saved cart arrives', async () => {
+    let answer;
+    renderSavedCart(() => new Promise((resolve) => { answer = resolve; }));
+    expect(await screen.findByText('Loading your cart…')).toBeInTheDocument();
+    answer({ cart: buildCart(cartItems) });
+    expect(await screen.findByRole('link', { name: 'Zassenhaus Manaos Hand Grinder' })).toBeInTheDocument();
+  });
+
+  it('keeps the old quantity and shows the reason when the API refuses a new one', async () => {
+    // Someone else bought some in the meantime, so the server refuses 3 (handbook 7.3).
+    const update = vi.spyOn(cartApi, 'updateItem').mockRejectedValueOnce(apiError(400, 'Only 2 in stock'));
+    const user = userEvent.setup();
+    renderSavedCart();
+    const grinder = await screen.findByRole('link', { name: 'Zassenhaus Manaos Hand Grinder' }).then((link) => link.closest('li'));
+
+    await user.click(within(grinder).getByRole('button', { name: 'Increase quantity' }));
+    expect(update).toHaveBeenCalledWith(40, 3);
+    expect(await screen.findByRole('status')).toHaveTextContent('Only 2 in stock');
+    expect(within(grinder).getByLabelText('Quantity')).toHaveTextContent('2');
+    expect(within(summary()).getByText('₺110,196.00')).toBeInTheDocument(); // subtotal unchanged
+  });
+
+  it('keeps the item and shows the reason when the API cannot remove it', async () => {
+    vi.spyOn(cartApi, 'removeItem').mockRejectedValueOnce(apiError(0, 'Cannot reach the server. Is the backend running?'));
+    const user = userEvent.setup();
+    renderSavedCart();
+    await user.click(await screen.findByRole('button', { name: 'Remove Bialetti Thermos 750 ml Grey' }));
+
+    expect(await screen.findByText('Cannot reach the server. Is the backend running?')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Bialetti Thermos 750 ml Grey' })).toBeInTheDocument();
   });
 });
