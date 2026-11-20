@@ -153,6 +153,101 @@
   margin: 0 0 16px;
 }
 
+/* ---------- Rejected state (SCRUM-54): --error border, like form errors (9.6) ---------- */
+.checkout-alert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--error);
+  border-radius: var(--radius-input);
+  background: var(--surface-2);
+}
+
+.checkout-alert svg {
+  flex: 0 0 auto;
+  color: var(--error);
+  margin-top: 2px;
+}
+
+.checkout-alert-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.checkout-alert-text {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--champagne);
+}
+
+/* ---------- Processing state ---------- */
+.checkout-processing {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.checkout-spinner {
+  animation: checkout-spin 1s linear infinite;
+}
+
+@keyframes checkout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-spinner {
+    animation: none;
+  }
+}
+
+/* ---------- Confirmation state ---------- */
+.checkout-confirmation {
+  max-width: 720px;
+}
+
+.checkout-confirmation-lead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  color: var(--champagne);
+}
+
+.checkout-confirmation-lead > svg {
+  color: var(--success);
+}
+
+.checkout-receipt-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.checkout-receipt-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.checkout-email-note {
+  margin: 20px 0 16px;
+}
+
+.checkout-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .checkout-submit {
   width: 100%;
   margin-top: 4px;
@@ -212,6 +307,15 @@
 @media (max-width: 768px) {
   .checkout-page {
     padding-top: 32px;
+  }
+
+  /* Address, card and invoice one under the other on a phone. */
+  .checkout-receipt-details {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-confirmation-actions .btn {
+    flex: 1 1 100%;
   }
 
   .checkout-title {

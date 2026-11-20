@@ -119,14 +119,25 @@ const API_FIELDS = {
   'card.cvv': 'cvv',
 };
 
+// kind tells the page which message box to show:
+// 'rejected' (402, the bank said no), 'stock' (409, someone bought the last ones) or 'other'.
 export function checkoutServerErrors(err) {
   const fields = {};
   for (const { field, message } of err.details ?? []) {
     const name = API_FIELDS[field];
     if (name) fields[name] ??= message;
   }
-  if (Object.keys(fields).length) return { fields, form: '' };
+  if (Object.keys(fields).length) return { fields, form: '', kind: 'other' };
+
   // 402: the bank said no. Nothing was saved, so the user can simply try another card.
-  const form = err.status === 402 ? `${err.message}. You can try another card.` : err.message;
-  return { fields, form };
+  if (err.status === 402) {
+    return { fields, form: `${err.message}. You can try another card.`, kind: 'rejected' };
+  }
+  // 409: not enough stock any more. details say which product: "<name> has only N left".
+  if (err.status === 409) {
+    const lines = (err.details ?? []).map((d) => d.message).filter(Boolean);
+    const what = lines.length ? `${lines.join('. ')}.` : err.message;
+    return { fields, form: `${what} Change the quantity in your cart to continue.`, kind: 'stock' };
+  }
+  return { fields, form: err.message, kind: 'other' };
 }
