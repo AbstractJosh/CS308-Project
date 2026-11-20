@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import knex from 'knex';
-import { PRODUCT_COLUMNS, applyProductFilters } from '../../src/utils/productQuery.js';
+import { PLAIN_LETTERS, PRODUCT_COLUMNS, TURKISH_LETTERS, applyProductFilters } from '../../src/utils/productQuery.js';
 import { productListQuerySchema } from '../../src/utils/validators.js';
 
 const qb = knex({ client: 'pg' });
@@ -41,7 +41,13 @@ describe('applyProductFilters with sort', () => {
     expect(sql).toContain('"c"."slug" = ?');
     expect(sql).toContain('ilike');
     expect(sql).toMatch(/order by "p"\."price" asc, "p"\."id" asc$/);
-    expect(bindings).toEqual([true, 'grinders', '%burr%', '%burr%']);
+    // translate() takes the two Turkish letter lists before each search pattern (SCRUM-114).
+    expect(bindings).toEqual([
+      true,
+      'grinders',
+      ...[TURKISH_LETTERS, PLAIN_LETTERS, '%burr%'],
+      ...[TURKISH_LETTERS, PLAIN_LETTERS, '%burr%'],
+    ]);
   });
 });
 
