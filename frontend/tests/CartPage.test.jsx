@@ -4,31 +4,20 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import App from '../src/App.jsx';
 import CartPage, { CartView } from '../src/pages/CartPage.jsx';
+import { buildCart, fakeCartItems } from '../src/pages/CartPage.fakeData.js';
 import { AuthProvider } from '../src/context/AuthContext.jsx';
 import { ToastProvider } from '../src/context/ToastContext.jsx';
 import { CartProvider } from '../src/context/CartContext.jsx';
-import { buildCart, saveGuestItems } from '../src/utils/cartStorage.js';
+import { saveGuestItems } from '../src/utils/cartStorage.js';
 import { authApi, cartApi } from '../src/api/endpoints.js';
 import { tokenStore } from '../src/api/client.js';
 
 const routerFlags = { v7_startTransition: true, v7_relativeSplatPath: true };
 
-// Three real seed products (handbook Appendix A), in the guest-cart shape of handbook 9.7.
-// They used to live in src/pages/CartPage.fakeData.js; the page uses the real cart now
-// (SCRUM-71), so the sample data belongs to the test (SCRUM-55).
-const product = (id, name, model, serialNumber, price, imageCount, quantityInStock) => ({
-  id, name, model, serialNumber, price, imageCount, quantityInStock,
-});
-const cartItems = [
-  { productId: 3, quantity: 1, product: product(3, 'Sage The Barista Express Impress', 'SES876 BSS', 'CRM-EM-1003', 99999, 8, 9) },
-  { productId: 40, quantity: 2, product: product(40, 'Zassenhaus Manaos Hand Grinder', 'Manaos', 'CRM-GR-8004', 4199, 4, 14) },
-  { productId: 45, quantity: 1, product: product(45, 'Bialetti Thermos 750 ml Grey', 'Thermos 750 ml', 'CRM-SV-9005', 1799, 1, 22) },
-];
-
-// The cart page with the real AuthProvider and CartProvider (SCRUM-71). The sample items are put
+// The cart page with the real AuthProvider and CartProvider (SCRUM-71). The fake items are put
 // in the guest cart in localStorage, so no backend is needed.
 function renderCart() {
-  saveGuestItems(cartItems);
+  saveGuestItems(fakeCartItems);
   return render(
     <MemoryRouter initialEntries={['/cart']} future={routerFlags}>
       <ToastProvider>
@@ -52,7 +41,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('buildCart', () => {
   it('counts units and adds up the subtotal (handbook 8.1 Cart)', () => {
-    const cart = buildCart(cartItems);
+    const cart = buildCart(fakeCartItems);
     expect(cart.itemCount).toBe(4); // 1 machine + 2 grinders + 1 thermos
     expect(cart.subtotal).toBe(99999 + 2 * 4199 + 1799);
   });
@@ -124,7 +113,7 @@ describe('CartPage', () => {
     tokenStore.set('saved-token');
     vi.spyOn(authApi, 'me').mockResolvedValueOnce({ user: { id: 1, name: 'Demo Customer', role: 'CUSTOMER' } });
     // Logged in, the guest cart is merged into the saved cart on the server.
-    vi.spyOn(cartApi, 'merge').mockResolvedValueOnce({ cart: buildCart(cartItems) });
+    vi.spyOn(cartApi, 'merge').mockResolvedValueOnce({ cart: buildCart(fakeCartItems) });
     renderCart();
     expect(await screen.findByRole('link', { name: /go to checkout/i })).toHaveAttribute('href', '/checkout');
     expect(screen.queryByText(/shopping as a guest/i)).not.toBeInTheDocument();
@@ -133,11 +122,11 @@ describe('CartPage', () => {
 
 describe('CartView', () => {
   it('blocks checkout while a sold-out product is in the cart (req 7)', () => {
-    const soldOut = { ...cartItems[2], product: { ...cartItems[2].product, quantityInStock: 0 } };
+    const soldOut = { ...fakeCartItems[2], product: { ...fakeCartItems[2].product, quantityInStock: 0 } };
     render(
       <MemoryRouter future={routerFlags}>
         <ToastProvider>
-          <CartView cart={buildCart([cartItems[0], soldOut])} loggedIn onQuantityChange={() => {}} onRemove={() => {}} />
+          <CartView cart={buildCart([fakeCartItems[0], soldOut])} loggedIn onQuantityChange={() => {}} onRemove={() => {}} />
         </ToastProvider>
       </MemoryRouter>
     );
@@ -153,7 +142,7 @@ describe('CartPage with the cart API (SCRUM-55)', () => {
   const apiError = (status, message) => Object.assign(new Error(message), { status });
 
   // A logged-in customer whose saved cart (GET /cart) holds the three sample items.
-  function renderSavedCart(getCart = () => Promise.resolve({ cart: buildCart(cartItems) })) {
+  function renderSavedCart(getCart = () => Promise.resolve({ cart: buildCart(fakeCartItems) })) {
     tokenStore.set('saved-token');
     vi.spyOn(authApi, 'me').mockResolvedValue({ user: customer });
     vi.spyOn(cartApi, 'get').mockImplementation(getCart);
@@ -176,7 +165,7 @@ describe('CartPage with the cart API (SCRUM-55)', () => {
     let answer;
     renderSavedCart(() => new Promise((resolve) => { answer = resolve; }));
     expect(await screen.findByText('Loading your cart…')).toBeInTheDocument();
-    answer({ cart: buildCart(cartItems) });
+    answer({ cart: buildCart(fakeCartItems) });
     expect(await screen.findByRole('link', { name: 'Zassenhaus Manaos Hand Grinder' })).toBeInTheDocument();
   });
 
