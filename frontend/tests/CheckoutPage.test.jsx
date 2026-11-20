@@ -345,3 +345,30 @@ describe('checkout on the real API (SCRUM-54)', () => {
     expect(within(alert).getByRole('link', { name: 'Back to cart' })).toHaveAttribute('href', '/cart');
   });
 });
+
+// SCRUM-55: more checkout cases that were not tested yet.
+describe('checkout edge cases (SCRUM-55)', () => {
+  it('sends only one order when Pay is double-clicked', async () => {
+    create.mockReturnValue(new Promise(() => {})); // the server is still thinking
+    const user = userEvent.setup();
+    renderCheckout();
+    await goToPayment(user);
+    await fillCard(user);
+    await user.dblClick(payButton());
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows "Your order was not placed" with the server message for other errors', async () => {
+    // A staff account may not check out (docs/API.md: 403 for staff).
+    create.mockRejectedValueOnce(Object.assign(new Error('Only customers can check out'), { status: 403 }));
+    const user = userEvent.setup();
+    renderCheckout();
+    await goToPayment(user);
+    await fillCard(user);
+    await user.click(payButton());
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Your order was not placed');
+    expect(alert).toHaveTextContent('Only customers can check out');
+    expect(within(alert).queryByRole('link', { name: 'Back to cart' })).not.toBeInTheDocument();
+  });
+});
