@@ -66,10 +66,149 @@ export const productListQuerySchema = z.object({
     .max(80, { message: 'Invalid category' })
     .regex(/^[a-z0-9-]+$/, { message: 'Invalid category' })
     .optional(),
+  q: z
+    .string({ invalid_type_error: 'Invalid search' })
+    .trim()
+    .max(100, { message: 'Search must be at most 100 characters' })
+    .optional()
+    .transform((value) => value || undefined),
+  sort: z
+    .enum(['price_asc', 'price_desc', 'popularity', 'newest'], {
+      errorMap: () => ({ message: 'Sort must be price_asc, price_desc, popularity or newest' }),
+    })
+    .optional(),
 });
 
 // ===== CART (Luis) =====
+// Ids that come in the URL or the body: whole numbers that fit in a PostgreSQL int.
+const cartProductId = z.coerce
+  .number({ required_error: 'Product is required', invalid_type_error: 'Invalid product' })
+  .int({ message: 'Invalid product' })
+  .positive({ message: 'Invalid product' })
+  .max(2147483647, { message: 'Invalid product' });
+
+// Quantity of one cart line: 1 to 99 (handbook 7.3). Not coerced, so "2" in a JSON body is refused.
+const cartQuantity = z
+  .number({ required_error: 'Quantity is required', invalid_type_error: 'Quantity must be a number' })
+  .int({ message: 'Quantity must be a whole number' })
+  .min(1, { message: 'Quantity must be 1 to 99' })
+  .max(99, { message: 'Quantity must be 1 to 99' });
+
+// POST /cart/items
+export const cartItemSchema = z.object({
+  productId: cartProductId,
+  quantity: cartQuantity,
+});
+
+// PATCH /cart/items/:productId (body)
+export const cartQuantitySchema = z.object({
+  quantity: cartQuantity,
+});
+
+// PATCH and DELETE /cart/items/:productId (params)
+export const cartProductParamSchema = z.object({
+  productId: cartProductId,
+});
+
+// POST /cart/merge: the guest cart from localStorage, at most 50 lines.
+export const cartMergeSchema = z.object({
+  items: z
+    .array(z.object({ productId: cartProductId, quantity: cartQuantity }), {
+      required_error: 'Items are required',
+      invalid_type_error: 'Items must be a list',
+    })
+    .max(50, { message: 'A cart can have at most 50 items' }),
+});
 
 // ===== ORDERS (Luis, Ulukan) =====
+// SCRUM-44 (Ulukan): the card of POST /checkout, with the rules and messages of docs/API.md
+// "Fake bank rules". The checkout schema uses it as `card: cardSchema`, so the fields in
+// details come out as `card.number`, `card.cvv` and so on.
+// The import stays inside this block (shared file: lines are only added in your own block);
+// JavaScript reads imports first wherever they are written.
+import { cardDigits, isCardExpired, isValidCardNumber } from './cardUtils.js';
+
+// A text field of the card: missing or empty gives `required`, a failed check gives `invalid`.
+// One function, so a field never gets two messages. `clean` runs before the check.
+const cardText = (required, invalid, clean, isValid) =>
+  z
+    .string({ required_error: required, invalid_type_error: invalid })
+    .transform(clean)
+    .superRefine((value, ctx) => {
+      if (!value) ctx.addIssue({ code: z.ZodIssueCode.custom, message: required });
+      else if (!isValid(value)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: invalid });
+    });
+
+// A whole number from min to max. Not coerced, so "11" in a JSON body is refused.
+const cardWholeNumber = (required, invalid, min, max) =>
+  z
+    .number({ required_error: required, invalid_type_error: invalid })
+    .refine((value) => Number.isInteger(value) && value >= min && value <= max, { message: invalid });
+
+const cardExpiryMonth = cardWholeNumber('Expiry month is required', 'Enter a valid expiry month', 1, 12);
+const cardExpiryYear = cardWholeNumber('Expiry year is required', 'Enter a valid expiry year', 1000, 9999);
+
+export const cardSchema = z
+  .object(
+    {
+      // Spaces are removed, so the service gets the digits only.
+      number: cardText('Card number is required', 'Enter a valid card number', cardDigits, isValidCardNumber),
+      holderName: cardText(
+        'Name on card is required',
+        'Name on card must be 2 to 100 characters',
+        (name) => name.trim(),
+        (name) => name.length >= 2 && name.length <= 100,
+      ),
+      expiryMonth: cardExpiryMonth,
+      expiryYear: cardExpiryYear,
+      // Text, not a number, so a leading zero is kept. It is checked here and never saved.
+      cvv: cardText(
+        'CVV is required',
+        'CVV must be 3 or 4 digits',
+        (cvv) => cvv,
+        (cvv) => /^\d{3,4}$/.test(cvv),
+      ),
+    },
+    { required_error: 'Card details are required', invalid_type_error: 'Card details are required' },
+  )
+  // Expiry needs the month and the year together. Only checked when both are valid on their own,
+  // so a month like 0 gets "Enter a valid expiry month" and not "This card has expired" as well.
+  .superRefine((card, ctx) => {
+    const bothValid =
+      cardExpiryMonth.safeParse(card.expiryMonth).success && cardExpiryYear.safeParse(card.expiryYear).success;
+    if (bothValid && isCardExpired(card.expiryMonth, card.expiryYear)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['expiryMonth'], message: 'This card has expired' });
+    }
+  });
+
+// SCRUM-59 (Luis): the body of POST /checkout (handbook 8.3, docs/API.md).
+// deliveryAddress: 10 to 300 characters after trimming, with the checkout page's messages.
+// cardText (above) gives one message per field: "required" when empty, otherwise "invalid".
+export const checkoutSchema = z.object({
+  deliveryAddress: cardText(
+    'Delivery address is required',
+    'Delivery address must be 10 to 300 characters',
+    (address) => address.trim(),
+    (address) => address.length >= 10 && address.length <= 300,
+  ),
+  card: cardSchema,
+});
 
 // ===== ADMIN (Neslihan, Murat, Sidar) =====
+
+// Delivery list (Neslihan, SCRUM-57)
+// GET /admin/deliveries?completed=true|false (handbook 8.3). Without it, every delivery.
+export const deliveryListQuerySchema = z.object({
+  completed: z
+    .enum(['true', 'false'], { errorMap: () => ({ message: 'completed must be true or false' }) })
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === 'true')),
+});
+
+// Order status (Neslihan, SCRUM-60)
+// PATCH /admin/orders/:id/status body (handbook 8.3): the product manager moves an order forward.
+export const orderStatusSchema = z.object({
+  status: z.enum(['IN_TRANSIT', 'DELIVERED'], {
+    errorMap: () => ({ message: 'Status must be IN_TRANSIT or DELIVERED' }),
+  }),
+});

@@ -16,6 +16,8 @@ for (const name of ['localStorage', 'sessionStorage']) {
   }
 }
 
+window.scrollTo = () => {};
+
 // Runs after every frontend test.
 afterEach(() => {
   cleanup();

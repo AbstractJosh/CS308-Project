@@ -1,0 +1,340 @@
+/* Checkout page (handbook 9.6 "Cart and checkout", "Forms"). Uses only the variables and
+   classes from global.css. .checkout-page is not also a .container: global.css loads after
+   this file, and its .container padding would reset the padding-top below to 0. */
+.checkout-page {
+  padding-top: 56px;
+  padding-bottom: var(--section-gap);
+}
+
+.checkout-header {
+  margin-bottom: 32px;
+}
+
+.checkout-title {
+  font-size: 44px;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+/* ---------- Step indicator ---------- */
+.checkout-steps {
+  list-style: none;
+  display: flex;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.checkout-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.checkout-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.checkout-step-active {
+  color: var(--text);
+}
+
+.checkout-step-active .checkout-step-number {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+/* Form panel on the left, order summary on the right; they stack below 768 px (9.5). */
+.checkout-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 48px;
+  align-items: start;
+}
+
+.checkout-panel {
+  padding: 32px;
+}
+
+.checkout-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+.checkout-panel-title svg {
+  color: var(--champagne);
+}
+
+/* Groups the payment fields so they can all be locked while paying (SCRUM-107).
+   The browser draws a border around a fieldset by default; this removes it. */
+.checkout-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.checkout-fieldset:disabled .checkout-link {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.checkout-panel textarea.input {
+  resize: vertical;
+  min-height: 104px;
+}
+
+/* Expiry and CVV side by side. */
+.checkout-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.checkout-address-recap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* DM Mono label (9.4). */
+.checkout-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.checkout-address-text {
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* "Change" is a text link (9.6). */
+.checkout-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.checkout-link:hover {
+  text-decoration: underline;
+}
+
+.checkout-test-cards {
+  margin: 0 0 16px;
+}
+
+.checkout-form-error {
+  margin: 0 0 16px;
+}
+
+/* ---------- Rejected state (SCRUM-54): --error border, like form errors (9.6) ---------- */
+.checkout-alert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--error);
+  border-radius: var(--radius-input);
+  background: var(--surface-2);
+}
+
+.checkout-alert svg {
+  flex: 0 0 auto;
+  color: var(--error);
+  margin-top: 2px;
+}
+
+.checkout-alert-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.checkout-alert-text {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--champagne);
+}
+
+/* ---------- Processing state ---------- */
+.checkout-processing {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.checkout-spinner {
+  animation: checkout-spin 1s linear infinite;
+}
+
+@keyframes checkout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-spinner {
+    animation: none;
+  }
+}
+
+/* ---------- Confirmation state ---------- */
+.checkout-confirmation {
+  max-width: 720px;
+}
+
+.checkout-confirmation-lead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  color: var(--champagne);
+}
+
+.checkout-confirmation-lead > svg {
+  color: var(--success);
+}
+
+.checkout-receipt-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.checkout-receipt-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.checkout-email-note {
+  margin: 20px 0 16px;
+}
+
+.checkout-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.checkout-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.checkout-safe-note {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+/* ---------- Summary card: --surface, radius 16, sticky (9.6) ---------- */
+.checkout-summary {
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  padding: 28px;
+}
+
+.checkout-summary-title {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.checkout-summary-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.checkout-summary-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.checkout-summary-items li > span:last-child {
+  white-space: nowrap;
+}
+
+.checkout-summary-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 16px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.checkout-edit-cart {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .checkout-page {
+    padding-top: 32px;
+  }
+
+  /* Address, card and invoice one under the other on a phone. */
+  .checkout-receipt-details {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-confirmation-actions .btn {
+    flex: 1 1 100%;
+  }
+
+  .checkout-title {
+    font-size: 34px;
+  }
+
+  .checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  /* On a phone the summary comes first, so the buyer sees the total before paying. */
+  .checkout-summary {
+    position: static;
+    order: -1;
+    padding: 20px;
+  }
+
+  .checkout-panel {
+    padding: 24px 20px;
+  }
+}

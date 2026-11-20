@@ -54,8 +54,8 @@ export default function LoginPage() {
   const registerLink = redirect === '/' ? '/register' : `/register?redirect=${encodeURIComponent(redirect)}`;
 
   return (
-    <section className="container auth-page">
-      <div className="auth-layout">
+    <section className="auth-page">
+      <div className="container auth-layout">
         <div className="auth-intro">
           <p className="eyebrow">Your account</p>
           <h1>

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { useToast } from '../context/ToastContext.jsx';
+import { useAddToCart } from '../hooks/useAddToCart.js';
 import { formatPrice, stockLabel } from '../utils/format.js';
 import { productImage } from '../utils/images.js';
 import ProductBadge from './ProductBadge.jsx';
@@ -9,7 +9,7 @@ import './ProductCard.css';
 const DISTRIBUTOR_SUFFIX = / official distributor$/;
 
 export default function ProductCard({ product }) {
-  const { notify } = useToast();
+  const addToCart = useAddToCart();
   const brand = product.distributor.replace(DISTRIBUTOR_SUFFIX, '');
   const stock = stockLabel(product.quantityInStock);
 
@@ -25,7 +25,7 @@ export default function ProductCard({ product }) {
           className="product-card-add"
           aria-label={`Add ${product.name} to cart`}
           disabled={!product.inStock}
-          onClick={() => notify('The cart is coming soon')}
+          onClick={() => addToCart(product, 1)}
         >
           <Plus size={20} strokeWidth={1.5} />
         </button>

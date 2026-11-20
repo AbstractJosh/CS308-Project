@@ -7,6 +7,7 @@ import { Routes, Route } from 'react-router-dom';
 // ----- imports: LAYOUT (Sidar: Header, Footer) -----
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
+import ScrollToTop from './components/ScrollToTop.jsx';
 
 // ----- imports: PAGES (owners replace their own placeholder page file, not these lines) -----
 import HomePage from './pages/HomePage.jsx';
@@ -17,11 +18,26 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 
 // ----- imports: Sprint 2 and later pages -----
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import CheckoutPage from './pages/CheckoutPage.jsx';
+import CartPage from './pages/CartPage.jsx';
+import OrderHistoryPage from './pages/OrderHistoryPage.jsx';
+import OrderDetailPage from './pages/OrderDetailPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
+
+// ----- imports: ADMIN (Neslihan: layout; page owners add their admin page imports here) -----
+import RoleRoute from './components/RoleRoute.jsx';
+import AdminLayout from './pages/admin/AdminLayout.jsx';
+import AdminHome from './pages/admin/AdminHome.jsx';
+import AdminComingSoon from './pages/admin/AdminComingSoon.jsx';
+import { ADMIN_ROLES } from './pages/admin/adminMenu.js';
+import DeliveriesPage from './pages/admin/DeliveriesPage.jsx';
 
 export default function App() {
   return (
     <>
       {/* LAYOUT: Sidar puts <Header /> here */}
+      <ScrollToTop />
       <Header />
       <main className="app-main">
         <Routes>
@@ -34,6 +50,54 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* ===== Sprint 2 and later: add routes here ===== */}
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute reason="checkout">
+                <CheckoutPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/cart" element={<CartPage />} />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <ProtectedRoute>
+                <OrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ===== ADMIN: only product and sales managers (SCRUM-56) ===== */}
+          <Route
+            path="/admin"
+            element={
+              <RoleRoute roles={ADMIN_ROLES}>
+                <AdminLayout />
+              </RoleRoute>
+            }
+          >
+            <Route index element={<AdminHome />} />
+            {/* Page owners add theirs here, e.g. <Route path="deliveries" element={<DeliveriesPage />} /> */}
+            <Route path="deliveries" element={<DeliveriesPage />} />
+            <Route path="*" element={<AdminComingSoon />} />
+          </Route>
 
           {/* Keep this one last */}
           <Route path="*" element={<NotFoundPage />} />

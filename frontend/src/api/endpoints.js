@@ -23,6 +23,10 @@ export const productsApi = {
   list: (category) =>
     api(category ? `/products?category=${encodeURIComponent(category)}` : '/products', { auth: false }),
   get: (id) => api(`/products/${encodeURIComponent(id)}`, { auth: false }),
+  browse: (filters = {}) => {
+    const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value)).toString();
+    return api(query ? `/products?${query}` : '/products', { auth: false });
+  },
 };
 
 export const categoriesApi = {
@@ -30,7 +34,34 @@ export const categoriesApi = {
 };
 
 // ===== CART: cartApi (Luis, Sezin) =====
+// SCRUM-71 (Neslihan): Luis's cart routes (SCRUM-33, docs/API.md). Every call answers { cart }.
+export const cartApi = {
+  get: () => api('/cart'),
+  addItem: (productId, quantity) => api('/cart/items', { method: 'POST', body: { productId, quantity } }),
+  updateItem: (productId, quantity) =>
+    api(`/cart/items/${encodeURIComponent(productId)}`, { method: 'PATCH', body: { quantity } }),
+  removeItem: (productId) => api(`/cart/items/${encodeURIComponent(productId)}`, { method: 'DELETE' }),
+  merge: (items) => api('/cart/merge', { method: 'POST', body: { items } }),
+};
 
 // ===== ORDERS: ordersApi, checkoutApi (Luis, Ulukan, Sidar) =====
+export const ordersApi = {
+  list: () => api('/orders'),
+  get: (id) => api(`/orders/${encodeURIComponent(id)}`),
+};
+
+// SCRUM-54 (Sezin): Luis's POST /checkout (SCRUM-59, docs/API.md). body: { deliveryAddress, card }.
+// Answers 201 { order, invoice: { id, invoiceNumber }, emailSent }.
+export const checkoutApi = {
+  create: (body) => api('/checkout', { method: 'POST', body }),
+};
 
 // ===== ADMIN: adminApi (Neslihan, Murat, Sidar) =====
+// SCRUM-57 (Neslihan): delivery list for the product manager. completed: true, false or undefined (all).
+export const adminApi = {
+  deliveries: (completed) =>
+    api(completed === undefined ? '/admin/deliveries' : `/admin/deliveries?completed=${completed}`),
+  // SCRUM-60 (Neslihan): move an order forward. status: 'IN_TRANSIT' or 'DELIVERED'.
+  updateOrderStatus: (orderId, status) =>
+    api(`/admin/orders/${orderId}/status`, { method: 'PATCH', body: { status } }),
+};

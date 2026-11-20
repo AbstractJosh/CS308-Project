@@ -65,7 +65,7 @@ describe('CatalogPage', () => {
 
   it('hides products that come back for an unknown category', async () => {
     const { products } = await productsApi.list('coffee');
-    vi.spyOn(productsApi, 'list').mockResolvedValueOnce({ products });
+    vi.spyOn(productsApi, 'browse').mockResolvedValueOnce({ products });
     renderAt('/shop/COFFEE');
     expect(await screen.findByText('Category not found')).toBeInTheDocument();
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('CatalogPage', () => {
 
   it('shows category not found when the API rejects the address', async () => {
     const rejected = Object.assign(new Error('Invalid category'), { status: 400 });
-    vi.spyOn(productsApi, 'list').mockRejectedValueOnce(rejected);
+    vi.spyOn(productsApi, 'browse').mockRejectedValueOnce(rejected);
     renderAt('/shop/bad_slug');
     expect(await screen.findByText('Category not found')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
@@ -81,7 +81,7 @@ describe('CatalogPage', () => {
 
   it('shows the error and tries again', async () => {
     const user = userEvent.setup();
-    vi.spyOn(productsApi, 'list').mockRejectedValueOnce(new Error('Cannot reach the server.'));
+    vi.spyOn(productsApi, 'browse').mockRejectedValueOnce(new Error('Cannot reach the server.'));
     renderAt('/shop');
     expect(await screen.findByText('Cannot reach the server.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Try again' }));

@@ -100,6 +100,20 @@ export const productsApi = {
   list: async (category) => ({
     products: category ? products.filter((product) => product.category.slug === category) : products,
   }),
+  browse: async ({ category, q, sort } = {}) => {
+    const term = q?.toLowerCase();
+    const found = products.filter(
+      (product) =>
+        (!category || product.category.slug === category) &&
+        (!term || product.name.toLowerCase().includes(term) || product.description.toLowerCase().includes(term))
+    );
+    const orders = {
+      price_asc: (a, b) => a.price - b.price,
+      price_desc: (a, b) => b.price - a.price,
+      popularity: (a, b) => b.popularity - a.popularity,
+    };
+    return { products: orders[sort] ? [...found].sort((a, b) => orders[sort](a, b) || a.id - b.id) : found };
+  },
 };
 
 export const categoriesApi = {

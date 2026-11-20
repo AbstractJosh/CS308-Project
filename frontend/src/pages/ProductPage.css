@@ -1,4 +1,6 @@
 /* Product page (handbook 9.4 to 9.6). Uses only the variables and classes from global.css. */
+/* .product-page is not also a .container: global.css loads after this file, and its
+   .container { padding: 0 24px } would reset this padding-top to 0. */
 .product-page {
   padding-top: 56px;
   padding-bottom: var(--section-gap);

@@ -118,10 +118,15 @@ function fakeKnex() {
 }
 
 describe('seed()', () => {
-  it('deletes child tables first, then inserts categories, products and users', async () => {
+  it('empties the Sprint 2 order tables and the cart before the catalog, then inserts categories, products and users', async () => {
     const { knex, calls } = fakeKnex();
     await seed(knex);
     expect(calls.map((c) => `${c.op} ${c.table}`)).toEqual([
+      'del invoices',
+      'del payments',
+      'del deliveries',
+      'del order_items',
+      'del orders',
       'del cart_items',
       'del carts',
       'del products',
