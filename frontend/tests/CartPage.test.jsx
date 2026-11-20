@@ -135,3 +135,61 @@ describe('CartView', () => {
     expect(within(row('Bialetti Thermos 750 ml Grey')).getByText('Sold out')).toBeInTheDocument();
   });
 });
+
+// SCRUM-55: what the cart page does when the cart API says no, and while it loads.
+describe('CartPage with the cart API (SCRUM-55)', () => {
+  const customer = { id: 1, name: 'Demo Customer', role: 'CUSTOMER' };
+  const apiError = (status, message) => Object.assign(new Error(message), { status });
+
+  // A logged-in customer whose saved cart (GET /cart) holds the three sample items.
+  function renderSavedCart(getCart = () => Promise.resolve({ cart: buildCart(fakeCartItems) })) {
+    tokenStore.set('saved-token');
+    vi.spyOn(authApi, 'me').mockResolvedValue({ user: customer });
+    vi.spyOn(cartApi, 'get').mockImplementation(getCart);
+    return render(
+      <MemoryRouter initialEntries={['/cart']} future={routerFlags}>
+        <ToastProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Routes>
+                <Route path="/cart" element={<CartPage />} />
+              </Routes>
+            </CartProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+  }
+
+  it('shows "Loading your cart" until the saved cart arrives', async () => {
+    let answer;
+    renderSavedCart(() => new Promise((resolve) => { answer = resolve; }));
+    expect(await screen.findByText('Loading your cart…')).toBeInTheDocument();
+    answer({ cart: buildCart(fakeCartItems) });
+    expect(await screen.findByRole('link', { name: 'Zassenhaus Manaos Hand Grinder' })).toBeInTheDocument();
+  });
+
+  it('keeps the old quantity and shows the reason when the API refuses a new one', async () => {
+    // Someone else bought some in the meantime, so the server refuses 3 (handbook 7.3).
+    const update = vi.spyOn(cartApi, 'updateItem').mockRejectedValueOnce(apiError(400, 'Only 2 in stock'));
+    const user = userEvent.setup();
+    renderSavedCart();
+    const grinder = await screen.findByRole('link', { name: 'Zassenhaus Manaos Hand Grinder' }).then((link) => link.closest('li'));
+
+    await user.click(within(grinder).getByRole('button', { name: 'Increase quantity' }));
+    expect(update).toHaveBeenCalledWith(40, 3);
+    expect(await screen.findByRole('status')).toHaveTextContent('Only 2 in stock');
+    expect(within(grinder).getByLabelText('Quantity')).toHaveTextContent('2');
+    expect(within(summary()).getByText('₺110,196.00')).toBeInTheDocument(); // subtotal unchanged
+  });
+
+  it('keeps the item and shows the reason when the API cannot remove it', async () => {
+    vi.spyOn(cartApi, 'removeItem').mockRejectedValueOnce(apiError(0, 'Cannot reach the server. Is the backend running?'));
+    const user = userEvent.setup();
+    renderSavedCart();
+    await user.click(await screen.findByRole('button', { name: 'Remove Bialetti Thermos 750 ml Grey' }));
+
+    expect(await screen.findByText('Cannot reach the server. Is the backend running?')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Bialetti Thermos 750 ml Grey' })).toBeInTheDocument();
+  });
+});
