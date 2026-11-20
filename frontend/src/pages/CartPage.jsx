@@ -32,17 +32,7 @@ export default function CartPage() {
       cart={cart}
       loggedIn={Boolean(user)}
       onQuantityChange={(productId, quantity) => updateQuantity(productId, quantity).catch(showError)}
-      // SCRUM-113: tells CartView whether the removal worked (true) or not (false, with the reason
-      // shown), so it only says "removed" once the cart really changed.
-      onRemove={(productId) =>
-        removeItem(productId).then(
-          () => true,
-          (err) => {
-            showError(err);
-            return false;
-          }
-        )
-      }
+      onRemove={(productId) => removeItem(productId).catch(showError)}
     />
   );
 }
@@ -70,11 +60,12 @@ export function CartView({ cart, loggedIn, onQuantityChange, onRemove }) {
   // so checkout waits until it is removed.
   const soldOut = cart.items.filter((item) => item.product.quantityInStock <= 0);
 
-  // SCRUM-113: wait for the answer. For a logged-in user the removal goes to the server, which
-  // can be slow or fail; "removed" is only said when onRemove reports that it worked.
+  // SCRUM-113: wait for the answer before saying "removed". For a logged-in user the removal
+  // goes to the server, which can be slow or fail. onRemove answers with the new cart when it
+  // worked, and with nothing when it failed (CartPage has then already shown the reason).
   async function handleRemove(item) {
-    const removed = await onRemove(item.productId);
-    if (removed) notify(`${item.product.name} was removed from your cart`);
+    const newCart = await onRemove(item.productId);
+    if (newCart) notify(`${item.product.name} was removed from your cart`);
   }
 
   return (
