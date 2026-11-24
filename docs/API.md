@@ -44,6 +44,7 @@ section, never rewrite or delete other people's lines.
 `product` is `{ id, name, model, serialNumber, description, quantityInStock, price, warrantyStatus, distributor, imageCount, popularity, categoryId, createdAt, updatedAt, inStock, category: { id, name, slug } }`, never `cost` or `isActive`.
 Only active products are returned; out-of-stock products are still listed with `inStock: false`. An unknown category slug gives `{ "products": [] }`. Products come in id order.
 Search (`q`) matches the name or the description, without caring about upper or lower case. `%`, `_` and `\` in the term are searched as plain characters. A blank `q` is ignored. Out-of-stock products are found too, with `inStock: false`.
+Turkish letters are folded on both sides (ı and İ to i, ş to s, ğ to g, ç to c, ö to o, ü to u), so `fabrikasi`, `FABRİKASI` and `Fabrikası` all find "Kahve Fabrikası" (SCRUM-114).
 Sort: `popularity` and `newest` put the highest first. Products with the same price or popularity stay in id order, so the order never jumps between requests. Without `sort` products come in id order.
 
 ## Cart (Luis)
