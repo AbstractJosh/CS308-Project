@@ -128,6 +128,19 @@ Checks run in this order: card fields (400), empty cart (400 `Your cart is empty
 
 Only the last 4 digits and a salted hash of the number are saved, never the full number or the CVV.
 
+## Wishlist (Ulukan)
+
+| Method and path | Auth | Request | Success | Errors |
+|---|---|---|---|---|
+| GET /wishlist | customer | - | 200 `{ products }` | 401, 403 |
+| POST /wishlist | customer | `{ productId }` | 200 `{ products }` | 400, 401, 403, 404 `Product not found` |
+| DELETE /wishlist/:productId | customer | - | 200 `{ products }` | 400 (bad id), 401, 403 |
+
+`products` is a list of Product objects, oldest first. Every route answers with the whole wishlist, so the page can just replace its state. Removed products are not shown. Staff get 403.
+
+- One row per user and product: adding a product that is already there is not an error.
+- POST with a missing or removed product: 404. DELETE of a product that is not there is not an error.
+
 ## Invoices (Murat)
 
 | Method and path | Auth | Request | Success | Errors |

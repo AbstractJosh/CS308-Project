@@ -156,6 +156,7 @@ erDiagram
 | `20261110_002_orders.js` | Luis | orders, order_items, deliveries |
 | `20261110_003_payments.js` | Ulukan | payments |
 | `20261110_004_invoices.js` | Murat | invoices |
+| `20261124_005_wishlist.js` | Ulukan (SCRUM-80) | wishlist_items: PK (user_id, product_id), cascade on user delete |
 | Sprint 3 to 5 | set at sprint planning | reviews, wishlist_items, notifications, refund_requests, chat tables |
 
 Never edit a migration that is already on `develop`; add a new one instead (handbook 1.1).
