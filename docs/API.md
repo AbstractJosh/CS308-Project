@@ -44,6 +44,7 @@ section, never rewrite or delete other people's lines.
 `product` is `{ id, name, model, serialNumber, description, quantityInStock, price, warrantyStatus, distributor, imageCount, popularity, categoryId, createdAt, updatedAt, inStock, category: { id, name, slug } }`, never `cost` or `isActive`.
 Only active products are returned; out-of-stock products are still listed with `inStock: false`. An unknown category slug gives `{ "products": [] }`. Products come in id order.
 Search (`q`) matches the name or the description, without caring about upper or lower case. `%`, `_` and `\` in the term are searched as plain characters. A blank `q` is ignored. Out-of-stock products are found too, with `inStock: false`.
+Turkish letters are folded on both sides (ı and İ to i, ş to s, ğ to g, ç to c, ö to o, ü to u), so `fabrikasi`, `FABRİKASI` and `Fabrikası` all find "Kahve Fabrikası" (SCRUM-114).
 Sort: `popularity` and `newest` put the highest first. Products with the same price or popularity stay in id order, so the order never jumps between requests. Without `sort` products come in id order.
 
 ## Cart (Luis)
@@ -127,6 +128,19 @@ Checks run in this order: card fields (400), empty cart (400 `Your cart is empty
 - Only customers can check out; staff get 403.
 
 Only the last 4 digits and a salted hash of the number are saved, never the full number or the CVV.
+
+## Wishlist (Ulukan)
+
+| Method and path | Auth | Request | Success | Errors |
+|---|---|---|---|---|
+| GET /wishlist | customer | - | 200 `{ products }` | 401, 403 |
+| POST /wishlist | customer | `{ productId }` | 200 `{ products }` | 400, 401, 403, 404 `Product not found` |
+| DELETE /wishlist/:productId | customer | - | 200 `{ products }` | 400 (bad id), 401, 403 |
+
+`products` is a list of Product objects, oldest first. Every route answers with the whole wishlist, so the page can just replace its state. Removed products are not shown. Staff get 403.
+
+- One row per user and product: adding a product that is already there is not an error.
+- POST with a missing or removed product: 404. DELETE of a product that is not there is not an error.
 
 ## Invoices (Murat)
 

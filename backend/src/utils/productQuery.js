@@ -29,8 +29,14 @@ export function applyProductFilters(query, filters = {}) {
   query.where('p.is_active', true);
   if (filters.category) query.where('c.slug', filters.category);
   if (filters.q) {
-    const pattern = `%${escapeLike(filters.q)}%`;
-    query.where((search) => search.whereILike('p.name', pattern).orWhereILike('p.description', pattern));
+    // SCRUM-114: Turkish letters are folded on both sides, so "fabrikasi" and "FABRİKASI"
+    // find "Kahve Fabrikası" (ILIKE alone lowercases with English rules: I -> i, never ı).
+    const pattern = `%${escapeLike(foldTurkish(filters.q))}%`;
+    query.where((search) =>
+      search
+        .whereRaw('translate(??, ?, ?) ilike ?', ['p.name', TURKISH_LETTERS, PLAIN_LETTERS, pattern])
+        .orWhereRaw('translate(??, ?, ?) ilike ?', ['p.description', TURKISH_LETTERS, PLAIN_LETTERS, pattern]),
+    );
   }
   const sortOrder = SORT_ORDERS[filters.sort];
   if (sortOrder) query.orderBy(sortOrder.column, sortOrder.direction);
@@ -45,6 +51,19 @@ export const SORT_ORDERS = {
   popularity: { column: 'p.popularity', direction: 'desc' },
   newest: { column: 'p.created_at', direction: 'desc' },
 };
+
+// SCRUM-114: each Turkish letter and the plain letter it is folded to, at the same position.
+// The database does the same with translate(), so both sides of the search match.
+export const TURKISH_LETTERS = 'ıİşŞğĞçÇöÖüÜ';
+export const PLAIN_LETTERS = 'iisSgGcCoOuU';
+
+// "FABRİKASI" -> "FABRiKASI", "Fabrikası" -> "Fabrikasi". Upper and lower case are left to ILIKE.
+export function foldTurkish(text) {
+  return [...text].map((char) => {
+    const index = TURKISH_LETTERS.indexOf(char);
+    return index === -1 ? char : PLAIN_LETTERS[index];
+  }).join('');
+}
 
 export function escapeLike(term) {
   return term.replace(/[\\%_]/g, (char) => `\\${char}`);

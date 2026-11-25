@@ -35,6 +35,11 @@ import * as ordersController from '../controllers/orders.controller.js';
 import * as checkoutController from '../controllers/checkout.controller.js';
 import { checkoutSchema } from '../utils/validators.js';
 
+// ----- imports: WISHLIST (Ulukan) -----
+// Uses requireAuth and validate from the AUTH block, cartProductParamSchema from the CART
+// block and requireRole from the ADMIN block.
+import * as wishlistController from '../controllers/wishlist.controller.js';
+
 // ----- imports: INVOICES (Murat) -----
 // Uses requireAuth and validate from the AUTH block and idParamSchema from the CATALOG block.
 import * as invoicesController from '../controllers/invoices.controller.js';
@@ -87,6 +92,24 @@ router.get('/orders/:id', requireAuth, validate(idParamSchema, 'params'), orders
 // Checkout (SCRUM-59): customers only (handbook 8.3). Pays the cart and answers
 // 201 { order, invoice, emailSent }; 400 card/address/empty cart, 402 bank, 409 stock.
 router.post('/checkout', requireAuth, requireRole('CUSTOMER'), validate(checkoutSchema), checkoutController.create);
+
+// ===== WISHLIST (Ulukan) =====
+// SCRUM-80: customers only (handbook 8.4). Every route answers 200 { products }.
+router.get('/wishlist', requireAuth, requireRole('CUSTOMER'), wishlistController.list);
+router.post(
+  '/wishlist',
+  requireAuth,
+  requireRole('CUSTOMER'),
+  validate(cartProductParamSchema),
+  wishlistController.add,
+);
+router.delete(
+  '/wishlist/:productId',
+  requireAuth,
+  requireRole('CUSTOMER'),
+  validate(cartProductParamSchema, 'params'),
+  wishlistController.remove,
+);
 
 // ===== INVOICES (Murat) =====
 // The invoice PDF: the order's customer, product managers and sales managers only (SCRUM-49, req 4).
