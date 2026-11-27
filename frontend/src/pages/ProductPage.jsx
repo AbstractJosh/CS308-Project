@@ -8,6 +8,7 @@ import { productsApi } from '../api/endpoints.js';
 import { useAddToCart } from '../hooks/useAddToCart.js';
 import { formatPrice, stockLabel } from '../utils/format.js';
 import { productImage } from '../utils/images.js';
+import WishlistButton from '../components/WishlistButton.jsx';
 import './ProductPage.css';
 
 // Product page, route /products/:id (handbook 9.6). Owner: Sezin (SCRUM-16).
@@ -157,6 +158,7 @@ function ProductDetails({ product }) {
               <ShoppingBag size={18} strokeWidth={1.5} />
               Add to cart
             </button>
+            <WishlistButton product={product} />
           </div>
 
           {soldOut && (

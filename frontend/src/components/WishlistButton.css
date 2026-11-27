@@ -1,0 +1,43 @@
+/* Heart button on the product page (SCRUM-86). A 48 px round button with a --line border,
+   like the header icon buttons (handbook 9.6); the heart is filled with --accent when saved. */
+.wishlist-button-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wishlist-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--champagne);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.wishlist-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.wishlist-button-on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.wishlist-button-on svg {
+  fill: var(--accent);
+}
+
+.wishlist-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wishlist-button-link {
+  font-size: 14px;
+}
