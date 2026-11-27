@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 import ProductBadge from '../components/ProductBadge.jsx';
 import QuantityStepper, { clampQuantity } from '../components/QuantityStepper.jsx';
+import ProductReviews from '../components/ProductReviews.jsx';
 import { productsApi } from '../api/endpoints.js';
 import { useAddToCart } from '../hooks/useAddToCart.js';
 import { formatPrice, stockLabel } from '../utils/format.js';
@@ -176,6 +177,7 @@ function ProductDetails({ product }) {
           </dl>
         </div>
       </div>
+      <ProductReviews product={product} />
     </section>
   );
 }

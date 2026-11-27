@@ -1,0 +1,112 @@
+/* Reviews on the product page (SCRUM-85). Uses only the variables and classes from global.css.
+   .product-reviews is not also a .container (see SCRUM-106): the padding stays on this element. */
+.product-reviews {
+  padding-top: var(--section-gap);
+  margin-top: var(--section-gap);
+  border-top: 1px solid var(--line);
+}
+
+.product-reviews-title {
+  margin-bottom: 32px;
+}
+
+/* Summary and form on the left, comments on the right; they stack below 768 px (9.5). */
+.product-reviews-layout {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.product-reviews-summary {
+  padding: 28px;
+}
+
+.product-reviews-average {
+  font-family: var(--font-serif);
+  font-size: 56px;
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.product-reviews-count {
+  margin: 8px 0 0;
+}
+
+.product-reviews-action {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.product-reviews-action textarea.input {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.product-reviews-submit {
+  width: 100%;
+}
+
+.product-reviews-mine p {
+  margin: 6px 0 0;
+}
+
+/* DM Mono label (9.4), like the other small labels. */
+.product-reviews-mine-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+/* ---------- Comments ---------- */
+.product-reviews-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.product-review {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.product-review-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.product-review-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.product-review-text {
+  margin: 0;
+  color: var(--champagne);
+}
+
+.product-reviews-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .product-reviews-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .product-reviews-summary {
+    padding: 20px;
+  }
+}
