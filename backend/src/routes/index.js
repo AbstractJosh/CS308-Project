@@ -49,6 +49,15 @@ import * as invoicesController from '../controllers/invoices.controller.js';
 import { requireRole } from '../middleware/auth.js';
 import * as deliveriesController from '../controllers/deliveries.controller.js';
 import { deliveryListQuerySchema, orderStatusSchema } from '../utils/validators.js';
+// Product manager catalog and invoices (Murat, SCRUM-77). invoicesController comes from the INVOICES block.
+import * as adminCatalogController from '../controllers/adminCatalog.controller.js';
+import {
+  categoryCreateSchema,
+  invoiceListQuerySchema,
+  productCreateSchema,
+  productStockSchema,
+  productUpdateSchema,
+} from '../utils/validators.js';
 
 const router = Router();
 
@@ -132,6 +141,44 @@ router.patch(
   validate(idParamSchema, 'params'),
   validate(orderStatusSchema),
   deliveriesController.updateStatus,
+);
+
+// Product manager: products, categories and stock (Murat, SCRUM-77, req 12). Contract in docs/API.md.
+router.get('/admin/products', requireAuth, requireRole('PRODUCT_MANAGER'), adminCatalogController.listProducts);
+router.post('/admin/products', requireAuth, requireRole('PRODUCT_MANAGER'), validate(productCreateSchema), adminCatalogController.createProduct);
+router.patch(
+  '/admin/products/:id',
+  requireAuth, requireRole('PRODUCT_MANAGER'),
+  validate(idParamSchema, 'params'),
+  validate(productUpdateSchema),
+  adminCatalogController.updateProduct,
+);
+router.delete(
+  '/admin/products/:id',
+  requireAuth, requireRole('PRODUCT_MANAGER'),
+  validate(idParamSchema, 'params'),
+  adminCatalogController.removeProduct,
+);
+router.patch(
+  '/admin/products/:id/stock',
+  requireAuth, requireRole('PRODUCT_MANAGER'),
+  validate(idParamSchema, 'params'),
+  validate(productStockSchema),
+  adminCatalogController.setStock,
+);
+router.post('/admin/categories', requireAuth, requireRole('PRODUCT_MANAGER'), validate(categoryCreateSchema), adminCatalogController.createCategory);
+router.delete(
+  '/admin/categories/:id',
+  requireAuth, requireRole('PRODUCT_MANAGER'),
+  validate(idParamSchema, 'params'),
+  adminCatalogController.deleteCategory,
+);
+// Every invoice for the product manager, newest first, optional ?from=&to= (Murat, SCRUM-77, req 12).
+router.get(
+  '/admin/invoices',
+  requireAuth, requireRole('PRODUCT_MANAGER'),
+  validate(invoiceListQuerySchema, 'query'),
+  invoicesController.adminList,
 );
 
 export default router;
