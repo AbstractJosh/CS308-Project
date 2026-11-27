@@ -1,0 +1,94 @@
+/* Wishlist page (SCRUM-86). Uses only the variables and classes from global.css; the cards are
+   Sidar's ProductCard. .wishlist-page is not also a .container (see SCRUM-106). */
+.wishlist-page {
+  padding-top: 56px;
+  padding-bottom: var(--section-gap);
+}
+
+/* Title on the left, the count on the right, like a section header (handbook 9.6). */
+.wishlist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wishlist-title {
+  font-size: 44px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+/* DM Mono count, like "51 PRODUCTS" on the catalog. */
+.wishlist-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Same columns as the catalog: 3, then 2 below 1024 px, then 1 below 640 px (handbook 9.5). */
+.wishlist-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px 24px;
+}
+
+.wishlist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* "Remove" is a text link (9.6). */
+.wishlist-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.wishlist-remove:hover {
+  text-decoration: underline;
+}
+
+.wishlist-remove:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+@media (max-width: 1024px) {
+  .wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .wishlist-page {
+    padding-top: 32px;
+  }
+
+  .wishlist-title {
+    font-size: 34px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wishlist-grid {
+    grid-template-columns: 1fr;
+  }
+}

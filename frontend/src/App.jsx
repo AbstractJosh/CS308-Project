@@ -24,6 +24,7 @@ import CartPage from './pages/CartPage.jsx';
 import OrderHistoryPage from './pages/OrderHistoryPage.jsx';
 import OrderDetailPage from './pages/OrderDetailPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import WishlistPage from './pages/WishlistPage.jsx';
 
 // ----- imports: ADMIN (Neslihan: layout; page owners add their admin page imports here) -----
 import RoleRoute from './components/RoleRoute.jsx';
@@ -81,6 +82,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute>
+                <WishlistPage />
               </ProtectedRoute>
             }
           />
