@@ -65,3 +65,12 @@ export const adminApi = {
   updateOrderStatus: (orderId, status) =>
     api(`/admin/orders/${orderId}/status`, { method: 'PATCH', body: { status } }),
 };
+
+// ===== WISHLIST: wishlistApi (Ulukan's API, Sezin's pages) =====
+// SCRUM-86 (Sezin): Ulukan's wishlist routes (SCRUM-80, docs/API.md). Customers only (staff get 403).
+// Every call answers the whole wishlist: { products } (Product objects, oldest first).
+export const wishlistApi = {
+  list: () => api('/wishlist'),
+  add: (productId) => api('/wishlist', { method: 'POST', body: { productId } }),
+  remove: (productId) => api(`/wishlist/${encodeURIComponent(productId)}`, { method: 'DELETE' }),
+};
