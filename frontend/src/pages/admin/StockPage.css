@@ -1,0 +1,101 @@
+.admin-stock-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-stock-count {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+}
+
+.admin-stock-message {
+  padding: 48px 0;
+}
+
+.admin-stock-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-stock-table th {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-stock-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  vertical-align: top;
+}
+
+.admin-stock-mono,
+.admin-stock-sub {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.admin-stock-mono {
+  white-space: nowrap;
+}
+
+.admin-stock-sub {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.admin-stock-label {
+  white-space: nowrap;
+}
+
+.admin-stock-out {
+  color: var(--error);
+}
+
+.admin-stock-low {
+  color: var(--accent);
+}
+
+.admin-stock-table .admin-stock-input {
+  width: 96px;
+  padding: 8px 12px;
+}
+
+.admin-stock-error {
+  display: block;
+  max-width: 220px;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.admin-stock-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-stock-actions .admin-stock-small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}

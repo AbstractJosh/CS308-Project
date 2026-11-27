@@ -33,6 +33,8 @@ import AdminComingSoon from './pages/admin/AdminComingSoon.jsx';
 import { ADMIN_ROLES } from './pages/admin/adminMenu.js';
 import DeliveriesPage from './pages/admin/DeliveriesPage.jsx';
 import ProductsPage from './pages/admin/ProductsPage.jsx';
+import StockPage from './pages/admin/StockPage.jsx';
+import CommentsPage from './pages/admin/CommentsPage.jsx';
 
 export default function App() {
   return (
@@ -98,6 +100,8 @@ export default function App() {
             {/* Page owners add theirs here, e.g. <Route path="deliveries" element={<DeliveriesPage />} /> */}
             <Route path="deliveries" element={<DeliveriesPage />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="stock" element={<StockPage />} />
+            <Route path="comments" element={<CommentsPage />} />
             <Route path="*" element={<AdminComingSoon />} />
           </Route>
 

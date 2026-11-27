@@ -191,4 +191,11 @@ export const fakeAdminProductsApi = {
     products.splice(index, 1);
     return {};
   },
+  setStock: async (id, quantityInStock) => {
+    const index = products.findIndex((item) => String(item.id) === String(id));
+    if (index === -1) throw notFound();
+    const product = withCategory({ ...products[index], quantityInStock, updatedAt: new Date().toISOString() });
+    products[index] = product;
+    return { product };
+  },
 };

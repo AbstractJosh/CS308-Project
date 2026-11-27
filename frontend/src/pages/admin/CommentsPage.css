@@ -1,0 +1,107 @@
+.admin-comments-page h2 {
+  margin-bottom: 24px;
+}
+
+.admin-comments-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.admin-comments-filter {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--champagne);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.admin-comments-filter:hover {
+  border-color: var(--accent);
+}
+
+.admin-comments-filter.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.admin-comments-alert {
+  margin-bottom: 16px;
+}
+
+.admin-comments-message {
+  padding: 48px 0;
+}
+
+.admin-comments-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-comments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-comments-table th {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-comments-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  vertical-align: top;
+}
+
+.admin-comments-mono,
+.admin-comments-sub {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.admin-comments-mono {
+  white-space: nowrap;
+}
+
+.admin-comments-table td:first-child {
+  min-width: 170px;
+}
+
+.admin-comments-sub {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.admin-comments-text {
+  min-width: 220px;
+  color: var(--champagne);
+  overflow-wrap: anywhere;
+}
+
+.admin-comments-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-comments-actions .admin-comments-small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
