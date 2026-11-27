@@ -212,3 +212,107 @@ export const orderStatusSchema = z.object({
     errorMap: () => ({ message: 'Status must be IN_TRANSIT or DELIVERED' }),
   }),
 });
+
+// Product manager catalog (Murat, SCRUM-77, contract in docs/API.md from SCRUM-76)
+// The limits are the column sizes of migration 001 (handbook 6.1); the messages are the
+// same as the admin product form (frontend pages/admin/productForm.js).
+const MAX_MONEY = 99999999.99; // DECIMAL(10, 2)
+const MAX_INT = 2147483647; // integer column
+
+function requiredText(label, max) {
+  const text = z
+    .string({ required_error: `${label} is required`, invalid_type_error: `${label} must be text` })
+    .trim()
+    .min(1, { message: `${label} is required` });
+  return max ? text.max(max, { message: `${label} must be at most ${max} characters` }) : text;
+}
+
+// Whole kuruş only: 12.5 and 12.50 are fine, 12.505 is not.
+const hasAtMostTwoDecimals = (value) => Math.abs(Math.round(value * 100) - value * 100) < 1e-6;
+
+function money(label) {
+  const message = `${label} must be a number, 0 or more`;
+  return z
+    .number({ required_error: `${label} is required`, invalid_type_error: message })
+    .finite({ message })
+    .min(0, { message })
+    .max(MAX_MONEY, { message: `${label} must be below 100,000,000` })
+    .refine(hasAtMostTwoDecimals, { message: `${label} can have at most 2 decimals` });
+}
+
+const stockNumber = z
+  .number({
+    required_error: 'Stock is required',
+    invalid_type_error: 'Stock must be a whole number, 0 or more',
+  })
+  .int({ message: 'Stock must be a whole number, 0 or more' })
+  .min(0, { message: 'Stock must be a whole number, 0 or more' })
+  .max(MAX_INT, { message: 'Stock is too large' });
+
+const productFields = {
+  name: requiredText('Name', 150),
+  model: requiredText('Model', 100),
+  serialNumber: requiredText('Serial number', 60),
+  description: requiredText('Description'),
+  categoryId: z
+    .number({ required_error: 'Choose a category', invalid_type_error: 'Choose a category' })
+    .int({ message: 'Choose a category' })
+    .positive({ message: 'Choose a category' })
+    .max(MAX_INT, { message: 'Choose a category' }),
+  price: money('Price'),
+  cost: money('Cost').nullable(),
+  quantityInStock: stockNumber,
+  warrantyStatus: requiredText('Warranty', 100),
+  distributor: requiredText('Distributor', 150),
+};
+
+// POST /admin/products: every field; cost may be null but must be sent.
+export const productCreateSchema = z.object({ ...productFields, cost: productFields.cost.default(null) });
+
+// PATCH /admin/products/:id: any of the same fields, at least one.
+export const productUpdateSchema = z
+  .object(productFields)
+  .partial()
+  .refine((body) => Object.values(body).some((value) => value !== undefined), {
+    message: 'Send at least one field to change',
+  });
+
+// PATCH /admin/products/:id/stock: the new stock number.
+export const productStockSchema = z.object({ quantityInStock: stockNumber });
+
+// POST /admin/categories. slug is made from the name when it is left out.
+export const categoryCreateSchema = z.object({
+  name: requiredText('Name', 80),
+  slug: z
+    .string({ invalid_type_error: 'Slug must be text' })
+    .trim()
+    .max(80, { message: 'Slug must be at most 80 characters' })
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, {
+      message: 'Slug can only have lowercase letters, digits and single dashes',
+    })
+    .optional(),
+  description: z
+    .string({ invalid_type_error: 'Description must be text' })
+    .trim()
+    .nullable()
+    .optional()
+    .transform((value) => (value ? value : null)),
+});
+
+// GET /admin/invoices?from=YYYY-MM-DD&to=YYYY-MM-DD, both optional and inclusive.
+function isRealDate(text) {
+  const date = new Date(`${text}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
+}
+const dateQuery = (name) =>
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: `${name} must be a date like 2026-11-30` })
+    .refine(isRealDate, { message: `${name} must be a real date` })
+    .optional();
+export const invoiceListQuerySchema = z
+  .object({ from: dateQuery('from'), to: dateQuery('to') })
+  .refine((query) => !query.from || !query.to || query.from <= query.to, {
+    message: 'from must not be after to',
+    path: ['from'],
+  });
