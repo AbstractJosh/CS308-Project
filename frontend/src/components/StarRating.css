@@ -1,0 +1,79 @@
+/* Stars for ratings (SCRUM-85). Gold stars use --accent; empty ones use --line. */
+.star-rating {
+  display: inline-flex;
+  gap: 2px;
+  vertical-align: middle;
+}
+
+.star-rating-star {
+  position: relative;
+  display: inline-block;
+}
+
+.star-rating-empty {
+  color: var(--muted);
+}
+
+/* The filled star is cut to the right width, so 4.5 shows four and a half gold stars. */
+.star-rating-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  color: var(--accent);
+}
+
+.star-rating-fill svg {
+  fill: var(--accent);
+}
+
+/* ---------- Picking a rating ---------- */
+.star-input {
+  border: 0;
+  margin: 0 0 18px;
+  padding: 0;
+}
+
+.star-input legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.star-input-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.star-input-star {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+
+/* The real radio button stays for the keyboard and screen readers, but is not seen. */
+.star-input-star input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.star-input-on {
+  color: var(--accent);
+}
+
+.star-input-on svg {
+  fill: var(--accent);
+}
+
+.star-input-star:hover {
+  color: var(--accent-hover);
+}
+
+.star-input-star:has(input:focus-visible) {
+  border-radius: 6px;
+  box-shadow: var(--focus-ring);
+}
