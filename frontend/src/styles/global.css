@@ -46,6 +46,14 @@
   --radius-pill: 999px;
   --header-height: 72px;
   --focus-ring: 0 0 0 3px rgba(211, 152, 88, 0.25);
+
+  /* Motion (SCRUM-94 new look part 1) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --speed-fast: 0.15s;
+  --speed: 0.3s;
+  --speed-slow: 0.6s;
+  --shadow-card: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+  --glow-accent: 0 10px 30px -10px rgba(211, 152, 88, 0.55);
 }
 
 @media (max-width: 768px) {
@@ -215,7 +223,8 @@ p {
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  transition: background-color var(--speed-fast), border-color var(--speed-fast), color var(--speed-fast),
+    transform var(--speed) var(--ease-out), box-shadow var(--speed) var(--ease-out);
 }
 
 .btn-primary {
@@ -436,4 +445,101 @@ p {
   font-size: 10px;
   line-height: 18px;
   text-align: center;
+}
+
+/* ---------- Motion (SCRUM-94 new look part 1) ---------- */
+/* Buttons lift a little on hover, the primary one gets a soft caramel glow. */
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: var(--glow-accent);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Cards rise on hover. Add hover-lift to any card that is clickable. */
+.card {
+  transition: transform var(--speed) var(--ease-out), box-shadow var(--speed) var(--ease-out),
+    border-color var(--speed) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+  border-color: rgba(211, 152, 88, 0.35);
+}
+
+/* Product photos zoom slowly inside their panel. */
+.photo-panel {
+  overflow: hidden;
+}
+
+.photo-panel img {
+  transition: transform var(--speed-slow) var(--ease-out);
+}
+
+.hover-lift:hover .photo-panel img,
+.photo-panel:hover img {
+  transform: scale(1.05);
+}
+
+/* Fade up when a page or section appears: <section className="section fade-up"> */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fade-up var(--speed-slow) var(--ease-out) both;
+}
+
+/* Children of .stagger fade up one after another (product grids, lists). */
+.stagger > * {
+  animation: fade-up var(--speed-slow) var(--ease-out) both;
+}
+
+.stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger > *:nth-child(4) { animation-delay: 0.18s; }
+.stagger > *:nth-child(5) { animation-delay: 0.24s; }
+.stagger > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger > *:nth-child(n + 7) { animation-delay: 0.36s; }
+
+/* Loading placeholder that shimmers: <div className="skeleton" style={{ height: 240 }} /> */
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  border-radius: var(--radius-card);
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* People who turn off animations in their system settings get none. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
