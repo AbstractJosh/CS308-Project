@@ -120,3 +120,39 @@ export async function sendInvoiceForOrder(orderId) {
     return false;
   }
 }
+
+// Sprint 3, SCRUM-77 (Murat): GET /admin/invoices for the product manager (req 12).
+// filters = { from?, to? } as 'YYYY-MM-DD', both days included, compared in Istanbul time.
+// The newest invoice first; open one with GET /invoices/:id/pdf.
+export async function listInvoices({ from, to } = {}) {
+  const istanbulDay = db.raw("(i.created_at AT TIME ZONE 'Europe/Istanbul')::date");
+  const query = db('invoices as i')
+    .join('orders as o', 'o.id', 'i.order_id')
+    .join('users as u', 'u.id', 'o.user_id')
+    .select(
+      'i.id',
+      'i.invoice_number',
+      'i.order_id',
+      'i.total',
+      'i.created_at',
+      'u.id as customer_id',
+      'u.name as customer_name',
+      'u.email as customer_email',
+    )
+    .orderBy([
+      { column: 'i.created_at', order: 'desc' },
+      { column: 'i.id', order: 'desc' },
+    ]);
+  if (from) query.where(istanbulDay, '>=', from);
+  if (to) query.where(istanbulDay, '<=', to);
+
+  const rows = await query;
+  return rows.map((row) => ({
+    id: row.id,
+    invoiceNumber: row.invoiceNumber,
+    orderId: row.orderId,
+    total: Number(row.total),
+    createdAt: row.createdAt,
+    customer: { id: row.customerId, name: row.customerName, email: row.customerEmail },
+  }));
+}

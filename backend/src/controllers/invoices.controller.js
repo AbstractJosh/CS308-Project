@@ -13,3 +13,13 @@ export async function pdf(req, res, next) {
     next(err);
   }
 }
+
+// Sprint 3, SCRUM-77: GET /admin/invoices (product manager). The query is checked before this.
+export async function adminList(req, res, next) {
+  try {
+    const invoices = await invoiceService.listInvoices(req.validatedQuery);
+    res.json({ invoices });
+  } catch (err) {
+    next(err);
+  }
+}
