@@ -44,6 +44,8 @@ export async function listDeliveries({ completed } = {}) {
       { column: 'd.id', order: 'desc' },
     ]);
   if (completed !== undefined) query.where('d.completed', completed);
+  // SCRUM-81: a cancelled order has nothing left to deliver, so it is never open work.
+  if (completed === false) query.whereNot('o.status', 'CANCELLED');
   const rows = await query;
   return rows.map(toDelivery);
 }

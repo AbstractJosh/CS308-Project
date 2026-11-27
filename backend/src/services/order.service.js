@@ -168,3 +168,36 @@ export async function getOrderForUser(orderId, user) {
   if (!canViewOrder(user, row.userId)) throw forbidden();
   return getOrder(orderId);
 }
+
+// POST /orders/:id/cancel (SCRUM-81, req 14, handbook 7.5): the customer cancels their own
+// order while it is PROCESSING. One transaction: the order row is locked first, so a cancel and
+// the product manager's move to IN_TRANSIT cannot both happen. Every item's quantity goes back
+// into stock and comes off popularity (units sold), undoing step 6 of the checkout.
+// Unknown id: 404. Another customer's order: 403. Not PROCESSING: 400. Returns the Order object.
+export async function cancelOrder(orderId, userId) {
+  return db.transaction(async (trx) => {
+    const order = await trx('orders').where({ id: orderId }).forUpdate().first('user_id', 'status');
+    if (!order) throw notFound('Order not found');
+    if (Number(order.userId) !== Number(userId)) throw forbidden();
+    if (order.status !== 'PROCESSING') {
+      throw badRequest(`This order is ${order.status}, so it can no longer be cancelled`);
+    }
+
+    await trx('orders').where({ id: orderId }).update({ status: 'CANCELLED', updated_at: trx.fn.now() });
+    // Product id order, the same order checkout locks them in, so the two cannot deadlock.
+    const items = await trx('order_items')
+      .where({ order_id: orderId })
+      .orderBy('product_id', 'asc')
+      .select('product_id', 'quantity');
+    for (const item of items) {
+      await trx('products')
+        .where({ id: item.productId })
+        .update({
+          quantity_in_stock: trx.raw('quantity_in_stock + ?', [item.quantity]),
+          popularity: trx.raw('popularity - ?', [item.quantity]),
+          updated_at: trx.fn.now(),
+        });
+    }
+    return getOrder(orderId, trx);
+  });
+}

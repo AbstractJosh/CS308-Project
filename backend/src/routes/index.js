@@ -101,6 +101,14 @@ router.get('/orders/:id', requireAuth, validate(idParamSchema, 'params'), orders
 // Checkout (SCRUM-59): customers only (handbook 8.3). Pays the cart and answers
 // 201 { order, invoice, emailSent }; 400 card/address/empty cart, 402 bank, 409 stock.
 router.post('/checkout', requireAuth, requireRole('CUSTOMER'), validate(checkoutSchema), checkoutController.create);
+// Cancel (Ulukan, SCRUM-81): the order's customer, only while PROCESSING; stock goes back (req 14).
+router.post(
+  '/orders/:id/cancel',
+  requireAuth,
+  requireRole('CUSTOMER'),
+  validate(idParamSchema, 'params'),
+  ordersController.cancel,
+);
 
 // ===== WISHLIST (Ulukan) =====
 // SCRUM-80: customers only (handbook 8.4). Every route answers 200 { products }.
