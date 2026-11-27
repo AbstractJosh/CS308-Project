@@ -163,6 +163,14 @@ The frontend opens it with the login token, for example `fetch('/api/invoices/7/
 |---|---|---|---|---|
 | `GET /admin/deliveries` | product manager | query `completed=true\|false` (optional) | 200 `{ deliveries: [{ id, orderId, customerId, productId, productName, quantity, totalPrice, deliveryAddress, completed, orderStatus }] }` | 400 (bad `completed`), 401, 403 |
 | `PATCH /admin/orders/:id/status` | product manager | `{ status: "IN_TRANSIT" \| "DELIVERED" }` | 200 `{ order }` | 400 (bad id, bad status, bad move), 401, 403, 404 `Order not found` |
+| `GET /admin/products` | product manager | - | 200 `{ products: [adminProduct] }` | 401, 403 |
+| `POST /admin/products` | product manager | `productBody` | 201 `{ product: adminProduct }` | 400 (bad field, unknown category), 401, 403, 409 (serial number taken) |
+| `PATCH /admin/products/:id` | product manager | any fields of `productBody`, at least one | 200 `{ product: adminProduct }` | 400, 401, 403, 404 `Product not found`, 409 (serial number taken) |
+| `DELETE /admin/products/:id` | product manager | - | 204 (no body) | 400 (bad id), 401, 403, 404 `Product not found` |
+| `PATCH /admin/products/:id/stock` | product manager | `{ quantityInStock }` | 200 `{ product: adminProduct }` | 400, 401, 403, 404 `Product not found` |
+| `POST /admin/categories` | product manager | `{ name, slug?, description? }` | 201 `{ category }` | 400, 401, 403, 409 (name or slug taken) |
+| `DELETE /admin/categories/:id` | product manager | - | 204 (no body) | 400 (bad id), 401, 403, 404 `Category not found`, 409 `This category still has products` |
+| `GET /admin/invoices` | product manager | query `from`, `to` (`YYYY-MM-DD`, both optional) | 200 `{ invoices: [adminInvoice] }` | 400 (bad date, `from` after `to`), 401, 403 |
 
 ### Delivery list (Neslihan, SCRUM-57)
 
@@ -176,3 +184,62 @@ The product manager moves an order forward one step at a time: `PROCESSING` -> `
 Any other move gives 400, for example `This order is PROCESSING, so it can only be moved to IN_TRANSIT, not DELIVERED`. A `DELIVERED` or `CANCELLED` order cannot be moved: `This order is DELIVERED and cannot be moved any more`.
 Moving to `DELIVERED` sets the order's `deliveredAt` and marks every delivery row of the order `completed: true`, in the same transaction. The customer sees the new status in their order history.
 The order row is locked while it changes, so two clicks at the same time cannot move it twice.
+
+### Products and categories for the product manager (Murat, SCRUM-76, SCRUM-77)
+
+These are the product manager's tools (req 12); every route needs the `PRODUCT_MANAGER` role, other users get 403 (req 17).
+The admin products page (Sidar, SCRUM-89) and the stock page (SCRUM-90) use these routes; their fake data in `ProductsPage.fakeData.js` already has these shapes.
+
+`productBody` is what the product form sends (`toProductBody` in `pages/admin/productForm.js`):
+
+```json
+{
+  "name": "Sage The Bambino Plus",
+  "model": "SES500 BSS",
+  "serialNumber": "CRM-EM-1005",
+  "description": "Compact espresso machine with fast heat-up and automatic milk frothing.",
+  "categoryId": 1,
+  "price": 49999,
+  "cost": null,
+  "quantityInStock": 12,
+  "warrantyStatus": "2 years manufacturer warranty",
+  "distributor": "Sage official distributor"
+}
+```
+
+| Field | Rule (the same limits as the database, handbook 6.1) |
+|---|---|
+| `name` | text, 1 to 150 characters after trimming |
+| `model` | text, 1 to 100 characters |
+| `serialNumber` | text, 1 to 60 characters; unique, also among removed products |
+| `description` | text, not empty |
+| `categoryId` | id of an existing category, else 400 `Category not found` |
+| `price` | number, 0 or more, at most 2 decimals, below 100,000,000 |
+| `cost` | `null` or a number like `price`; `null` means profit uses 50% of the price (req 11) |
+| `quantityInStock` | whole number, 0 or more |
+| `warrantyStatus` | text, 1 to 100 characters |
+| `distributor` | text, 1 to 150 characters |
+
+Text is trimmed before it is saved. A bad field gives 400 with `details`, one entry per field, for example
+`{ "error": "Price must be a number, 0 or more", "details": [{ "field": "price", "message": "Price must be a number, 0 or more" }] }`.
+A serial number that is already used gives 409 `A product with this serial number already exists`.
+
+`adminProduct` is the public `product` (Catalog section) plus `cost` (number or `null`): `{ id, name, model, serialNumber, description, quantityInStock, price, cost, warrantyStatus, distributor, imageCount, popularity, categoryId, createdAt, updatedAt, inStock, category: { id, name, slug } }`. `cost` is only ever sent on these admin routes.
+
+- `GET /admin/products` lists every active product in id order, out-of-stock ones too.
+- `POST /admin/products` starts the product with `imageCount: 1` and `popularity: 0`. It has no photos yet (`/images/products/<serialNumber>/01.jpg` does not exist), so pages show their placeholder image.
+- `PATCH /admin/products/:id` changes only the fields that are sent and sets `updatedAt`. Sending `cost: null` clears the cost.
+- `DELETE /admin/products/:id` does not delete the row: it sets `is_active = false`, so the product disappears from the shop, carts can no longer add it, and old orders and invoices still point to it (handbook 6.1). A removed product answers 404 on every admin route.
+- `PATCH /admin/products/:id/stock` sets the new stock number (not an amount to add), for example `{ "quantityInStock": 20 }`. The shop shows the new stock right away; `inStock` follows it.
+
+`POST /admin/categories` body: `name` (1 to 80 characters), `slug` (optional, 1 to 80 characters, lowercase letters, digits and `-`; made from the name when left out, `Milk Frothers` -> `milk-frothers`), `description` (optional text). Answers 201 with the same `category` object as `GET /categories`, with `productCount: 0`.
+`DELETE /admin/categories/:id` only works on an empty category: if any product, active or removed, still points to it, it answers 409 `This category still has products`. Move or remove the products first.
+The admin pages read the category list from the public `GET /categories`.
+
+### Invoices for the product manager (Murat, SCRUM-77)
+
+`GET /admin/invoices` lists all invoices, the newest first (req 12). The sales manager gets the same list in Sprint 4 (handbook 8.4).
+`from` and `to` filter by the invoice date in Istanbul time and include both days, for example `?from=2026-11-01&to=2026-11-30`. Either one can be left out.
+
+`adminInvoice` is `{ id, invoiceNumber, orderId, total, createdAt, customer: { id, name, email } }`. Open one with `GET /invoices/:id/pdf` (Invoices section); the product manager may open every invoice.
+
