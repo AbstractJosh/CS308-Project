@@ -75,11 +75,13 @@ Guests keep their cart in `localStorage` (`crema_guest_cart`); these routes are 
 | GET /orders | user | - | 200 `{ orders }` newest first | 401 |
 | GET /orders/:id | the order's customer, sales manager, product manager, support agent | - | 200 `{ order }` | 400 (bad id), 401, 403, 404 `Order not found` |
 | POST /checkout | customer | `{ deliveryAddress, card: { number, holderName, expiryMonth, expiryYear, cvv } }` | 201 `{ order, invoice: { id, invoiceNumber }, emailSent }` | 400, 401, 402, 403 (staff), 409 |
+| POST /orders/:id/cancel | the order's customer | - | 200 `{ order }` with status `CANCELLED` | 400 (bad id, not `PROCESSING`), 401, 403 (staff, another customer), 404 `Order not found` |
 
 `order` is the Order object of handbook 8.1: `{ id, status, total, deliveryAddress, cardLast4, createdAt, deliveredAt, items: [{ id, productId, name, model, quantity, unitPrice }] }`. `total` and `unitPrice` are numbers; `unitPrice` is the price paid at checkout, not today's price. `deliveredAt` is `null` until the order is delivered.
 
 - GET /orders gives only the logged-in user's own orders (staff too), each with its items. No orders: `{ "orders": [] }`. Orders with the same `createdAt` put the higher id first.
 - GET /orders/:id: any other customer gets 403, even for an order that exists.
+- POST /orders/:id/cancel (SCRUM-81, req 14): only a `PROCESSING` order can be cancelled; any other gives 400, for example `This order is IN_TRANSIT, so it can no longer be cancelled`. One transaction locks the order, sets `CANCELLED` and puts every item's quantity back into stock and off popularity. Two cancels at the same time: one gets 200, the other 400. The payment is not refunded here.
 
 ### Fake bank rules (Ulukan)
 
@@ -169,6 +171,7 @@ The frontend opens it with the login token, for example `fetch('/api/invoices/7/
 One delivery row per order item, written when the order is placed (SCRUM-35). Open deliveries (`completed: false`) come first, then the newest first.
 `totalPrice` is the line total the customer paid. `orderStatus` is the order's status (`PROCESSING`, `IN_TRANSIT`, `DELIVERED`, `CANCELLED`).
 `completed` becomes `true` when the product manager moves the order to `DELIVERED` (`PATCH /admin/orders/:id/status`, SCRUM-60).
+`completed=false` leaves out cancelled orders (SCRUM-81), since there is nothing left to deliver; without the filter they are listed with `orderStatus: "CANCELLED"`.
 
 ### Order status (Neslihan, SCRUM-60)
 

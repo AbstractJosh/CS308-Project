@@ -19,3 +19,13 @@ export async function getById(req, res, next) {
     next(err);
   }
 }
+
+// POST /orders/:id/cancel (Ulukan, SCRUM-81). Login, the customer role and the id are checked before this.
+export async function cancel(req, res, next) {
+  try {
+    const order = await orderService.cancelOrder(req.params.id, req.user.id);
+    res.json({ order });
+  } catch (err) {
+    next(err);
+  }
+}
